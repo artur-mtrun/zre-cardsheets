@@ -1,0 +1,53 @@
+<%- include('../includes/head.ejs') %>
+    
+    <link rel="stylesheet" href="/css/forms.css">
+    <link rel="stylesheet" href="/css/employee.css">
+</head>
+
+<body>
+    <%- include('../includes/navigation.ejs') %>
+    <main class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6 mb-4">
+                <% if (errorMessage) { %>
+                    <div class="alert alert-danger" role="alert"><%= errorMessage %></div>
+                <% } %>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-4 col-lg-3">
+                <form action="/add-employee" method="POST" novalidate>
+                    <div class="mb-3">
+                        <label for="nick" class="form-label">Nazwisko i imię</label>
+                        <input type="text" class="form-control" name="nick" id="nick" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="enrollnumber" class="form-label">Numer pracowniczy</label>
+                        <input type="text" class="form-control" name="enrollnumber" 
+                        id="enrollnumber" required value="<%= new_enrollnumber%>"
+                        <% if (!session.isAdmin) { %>
+                            readonly
+                            <% } %>
+                            >
+                    </div>
+                    <div class="mb-3">
+                        <label for="cardnumber" class="form-label">Karta</label>
+                        <input type="text" class="form-control" name="cardnumber" id="cardnumber" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="area_id" class="form-label">Obszar</label>
+                        <input type="text" class="form-control" name="area_id" id="area_id" required value="<%= session.area_id%>"
+                        <% if (session.area_id !== 0) { %>
+                        readonly
+                        <% } %>
+                        >
+                    </div>
+
+                    <div class="d-flex justify-content-center mt-4">
+                        <button class="btn btn-success" type="submit">Dodaj pracownika</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+<%- include('../includes/end.ejs') %>

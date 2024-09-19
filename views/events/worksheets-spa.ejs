@@ -1,0 +1,59 @@
+<%- include('../includes/head.ejs') %>
+<!-- Umieść ten link na końcu sekcji head -->
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <%- include('../includes/navigation.ejs') %>
+
+    <main class="container mt-4">
+        <h1 class="mb-4 text-primary">Kalendarz Worksheet</h1>
+        
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label for="monthFilter" class="form-label">Miesiąc:</label>
+                <select id="monthFilter" class="form-select">
+                    <option value="0">Styczeń</option>
+                    <option value="1">Luty</option>
+                    <option value="2">Marzec</option>
+                    <option value="3">Kwiecień</option>
+                    <option value="4">Maj</option>
+                    <option value="5">Czerwiec</option>
+                    <option value="6">Lipiec</option>
+                    <option value="7">Sierpień</option>
+                    <option value="8">Wrzesień</option>
+                    <option value="9">Październik</option>
+                    <option value="10">Listopad</option>
+                    <option value="11">Grudzień</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="yearFilter" class="form-label">Rok:</label>
+                <select id="yearFilter" class="form-select">
+                    <!-- Opcje roku będą dodane dynamicznie przez JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="employeeFilter" class="form-label">Pracownik:</label>
+                <select id="employeeFilter" class="form-select">
+                    <option value="">Wszyscy pracownicy</option>
+                    <!-- Opcje pracowników będą dodane dynamicznie -->
+                </select>
+            </div>
+        </div>
+
+        <table id="worksheetTable" class="table table-bordered">
+            <thead>
+                <tr>
+
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dane będą wstawiane dynamicznie przez JavaScript -->
+            </tbody>
+        </table>
+    </main>
+
+    <%- include('../includes/end.ejs') %>
+    <script src="/js/worksheet-spa.js"></script>
+</body>
+</html>

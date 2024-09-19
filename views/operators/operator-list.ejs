@@ -1,0 +1,57 @@
+<%- include('../includes/head.ejs') %>
+    <link rel="stylesheet" href="/css/operator.css">
+</head>
+
+<body>
+    <%- include('../includes/navigation.ejs') %>
+    <main class="container mt-4">
+        <!-- Nagłówek strony -->
+        <h1 class="mb-4 text-center">Lista operatorów</h1>
+        
+        <!-- Dodanie przycisku do dodawania nowego operatora -->
+        <div class="mb-3">
+            <a href="/add-operator" class="btn btn-success">Dodaj nowego operatora</a>
+        </div>
+        
+        <!-- Sprawdzenie, czy istnieją operatorzy do wyświetlenia -->
+        <% if (operators.length > 0) { %>
+            <!-- Tabela z listą operatorów -->
+            <table class="table table-striped table-hover">
+                <!-- Nagłówek tabeli -->
+                <thead class="table-success">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Login</th>
+                        <th scope="col">Hasło</th>
+                        <th scope="col">Admin</th>
+                        <th scope="col">Obszar</th>
+                        <th scope="col">Akcje</th>
+                    </tr>
+                </thead>
+                <!-- Ciało tabeli -->
+                <tbody>
+                    <!-- Iteracja przez wszystkich operatorów -->
+                    <% operators.forEach((operator, index) => { %>
+                        <tr>
+                            <th scope="row"><%= index + 1 %></th>
+                            <td><%= operator.login %></td>
+                            <td>********</td>
+                            <td><%= operator.is_admin ? "Tak" : "Nie" %></td>
+                            <td><%= operator.area_id %></td>
+                            <td>
+                                <!-- Tutaj możesz dodać przyciski akcji, np. edycji lub usuwania -->
+                                <button class="btn btn-primary btn-sm">Edytuj</button>
+                                <button class="btn btn-danger btn-sm">Usuń</button>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <!-- Komunikat wyświetlany, gdy nie ma operatorów -->
+            <div class="alert alert-info" role="alert">
+                Brak operatorów w systemie.
+            </div>
+        <% } %>
+    </main>
+<%- include('../includes/end.ejs') %>

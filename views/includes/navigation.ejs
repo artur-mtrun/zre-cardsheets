@@ -1,0 +1,71 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-success custom-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="https://zre.com.pl">HOME</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <% if (isAuthenticated) { 
+                    if (isAdmin) { %>
+                        <li class="nav-item">
+                            <a class="nav-link <%= path === '/card-list' ? 'active' : '' %>" href="/card-list">Karty</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= path === '/add-card' ? 'active' : '' %>" href="/add-card">Dodaj Kartę</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= path === '/operator-list' ? 'active' : '' %>" href="/operator-list">Operatorzy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= path === '/add-operator' ? 'active' : '' %>" href="/add-operator">Dodaj Operatora</a>
+                        </li>
+                    <% } %>
+                <li class="nav-item">
+                    <a class="nav-link <%= path === '/' ? 'active' : '' %>" href="/">Pracownicy</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= path === '/add-employee' ? 'active' : '' %>" href="/add-employee">Dodaj Pracownika</a>
+                </li >
+                <li class="nav-item">
+                    <a class="nav-link <%= path === '/events-spa' ? 'active' : '' %>" href="/events-spa">Zdarzenia</a>
+                </li>
+                <% } %>
+            </ul>
+            <ul class="navbar-nav">
+                <% if (!isAuthenticated) { %>
+                    <li class="nav-item">
+                        <a class="nav-link <%= path === '/login' ? 'active' : '' %>" href="/login">Zaloguj</a>
+                    </li>
+                <% } else { %>
+                    <li class="nav-item">
+                        <form action="/logout" method="post">
+                            <button class="btn btn-outline-light custom-logout-btn" type="submit">Wyloguj</button>
+                        </form>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+    .custom-navbar .nav-link {
+        color: white !important;
+        transition: color 0.3s ease;
+    }
+
+    .custom-navbar .nav-link:hover,
+    .custom-navbar .nav-link:focus {
+        color: #3d3a3a !important;
+    }
+
+    .custom-navbar .nav-link.active {
+        color: #da7575 !important;
+        font-weight: bold;
+    }
+
+    .custom-logout-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+</style>
