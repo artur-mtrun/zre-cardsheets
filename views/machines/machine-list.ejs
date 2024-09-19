@@ -33,9 +33,8 @@
                             <td><%= machine.ip %></td>
                             <td><%= machine.port %></td>
                             <td>
-                                <a href="/machines/<%= machine.machine_id %>" class="btn btn-info btn-sm">Szczegóły</a>
-                                <a href="/machines/edit/<%= machine.machine_id %>" class="btn btn-warning btn-sm">Edytuj</a>
-                                <form action="/machines/delete" method="POST" class="d-inline">
+                                <a href="/edit-machine <%= machine.machine_id %>" class="btn btn-warning btn-sm">Edytuj</a>
+                                <form action="/remove-machine" method="POST" class="d-inline">
                                     <input type="hidden" value="<%= machine.machine_id %>" name="machineId">
                                     <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('Czy na pewno chcesz usunąć tę maszynę?')">Usuń</button>
                                 </form>
@@ -49,7 +48,7 @@
                 Brak maszyn w systemie.
             </div>
         <% } %>
-        <a href="/machines/new" class="btn btn-primary">Dodaj nową maszynę</a>
+
     </main>
 
 <%- include('../includes/end.ejs') %>

@@ -53,3 +53,20 @@ exports.getAddMachine = async (req, res, next) => {
         next(err);  
     });
 };
+exports.postRemoveMachine = async (req, res) => {
+    if (!req.session.isLoggedIn) {
+        return res.redirect('/login');
+    }
+    try {
+        const machineId = req.body.machineId;
+        await Machine.destroy({
+            where: {
+                machine_id: machineId
+            }
+        });
+        res.redirect('/machine-list');
+    } catch (error) {
+        console.error('Błąd podczas usuwania maszyny:', error);
+        res.status(500).send('Wystąpił błąd podczas usuwania maszyny');
+    }
+};
