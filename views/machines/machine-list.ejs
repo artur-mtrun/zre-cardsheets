@@ -33,7 +33,7 @@
                             <td><%= machine.ip %></td>
                             <td><%= machine.port %></td>
                             <td>
-                                <a href="/edit-machine <%= machine.machine_id %>" class="btn btn-warning btn-sm">Edytuj</a>
+                                <a href="/edit-machine/<%= machine.machine_id %>" class="btn btn-warning btn-sm">Edytuj</a>
                                 <form action="/remove-machine" method="POST" class="d-inline">
                                     <input type="hidden" value="<%= machine.machine_id %>" name="machineId">
                                     <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('Czy na pewno chcesz usunąć tę maszynę?')">Usuń</button>
