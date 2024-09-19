@@ -1,13 +1,17 @@
     const { Machine } = require('../models/machine');
 
 exports.getMachines = async (req, res, next) => {
+    if (!req.session.isLoggedIn) {
+        return res.redirect('/login');
+    }
     Machine.findAll()
     .then(machines => {
         res.render('machines/machine-list', {
             machines: machines,
             pageTitle: 'Maszyny',
             path: '/machine-list',
-            isAuthenticated: req.session.isLoggedIn
+            isAuthenticated: req.session.isLoggedIn,
+            isAdmin: req.session.isAdmin
         }); 
     })
     .catch(err => {
@@ -17,10 +21,14 @@ exports.getMachines = async (req, res, next) => {
 };
 
 exports.getAddMachine = async (req, res, next) => {
+    if (!req.session.isLoggedIn) {
+        return res.redirect('/login');
+    }
     res.render('machines/add-machine', {
         pageTitle: 'Dodaj maszynę',
         path: '/add-machine',
-        isAuthenticated: req.session.isLoggedIn
+        isAuthenticated: req.session.isLoggedIn,
+        isAdmin: req.session.isAdmin
     });
 };
 
