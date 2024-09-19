@@ -84,7 +84,7 @@ exports.getEditMachine = async (req, res) => {
         res.render('machines/edit-machine', { 
             machine: machine,
             pageTitle: 'Edytuj maszynę',
-            path: '/edit-machine',
+            path: '/edit-machine/' + machineId,
             isAuthenticated: req.session.isLoggedIn,
             isAdmin: req.session.isAdmin
         });
@@ -99,7 +99,7 @@ exports.postEditMachine = async (req, res) => {
         return res.redirect('/login');
     }
     try {
-        const machineId = req.body.machineId;
+        const machineId = req.params.id;
         const updatedMachine = {
             machinenumber: req.body.machinenumber,
             descript: req.body.descript,

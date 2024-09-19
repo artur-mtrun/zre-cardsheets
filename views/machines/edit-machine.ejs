@@ -1,5 +1,13 @@
-<%- include('../includes/head.ejs') %>
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Default Title' %></title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/main.css">
 
 </head>
 
@@ -10,47 +18,47 @@
             <div class="col-md-8 col-lg-6">
                 <div class="card shadow">
                     <div class="card-body">
-                        <h1 class="card-title text-center mb-4">Dodaj nową maszynę</h1>
-                        <form action="/add-machine" method="POST" class="needs-validation" novalidate>
+                        <h1 class="card-title text-center mb-4">Edytuj maszynę</h1>
+                        <form action="/edit-machine/<%= machine.machine_id %>" method="POST" class="needs-validation" novalidate>
                             <div class="mb-3">
                                 <label for="machinenumber" class="form-label">Numer maszyny</label>
-                                <input type="text" class="form-control" id="machinenumber" name="machinenumber" required>
+                                <input type="text" class="form-control" id="machinenumber" name="machinenumber" value="<%= machine.machinenumber %>" required>
                                 <div class="invalid-feedback">
                                     Proszę podać numer maszyny.
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label for="descript" class="form-label">Opis</label>
-                                <textarea class="form-control" id="descript" name="descript" rows="3" required></textarea>
+                                <textarea class="form-control" id="descript" name="descript" rows="3" required><%= machine.descript %></textarea>
                                 <div class="invalid-feedback">
                                     Proszę podać opis maszyny.
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label for="area_id" class="form-label">ID obszaru</label>
-                                <input type="number" class="form-control" id="area_id" name="area_id" required>
+                                <input type="number" class="form-control" id="area_id" name="area_id" value="<%= machine.area_id %>" required>
                                 <div class="invalid-feedback">
                                     Proszę podać ID obszaru.
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label for="ip" class="form-label">Adres IP</label>
-                                <input type="text" class="form-control" id="ip" name="ip" pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" required>
+                                <input type="text" class="form-control" id="ip" name="ip" value="<%= machine.ip %>" pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" required>
                                 <div class="invalid-feedback">
                                     Proszę podać poprawny adres IP.
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label for="port" class="form-label">Port</label>
-                                <input type="number" class="form-control" id="port" name="port" min="1" max="65535" value="4370" required>
+                                <input type="number" class="form-control" id="port" name="port" value="<%= machine.port %>" min="1" max="65535" required>
                                 <div class="invalid-feedback">
                                     Proszę podać poprawny numer portu (1-65535).
                                 </div>
-                                <small class="form-text text-muted">Domyślna wartość portu to 4370.</small>
+                                <small class="form-text text-muted">Standardowa wartość portu to 4370.</small>
                             </div>
                             <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-primary">Dodaj maszynę</button>
-                                <a href="/machine-list" class="btn btn-secondary">Anuluj</a>
+                                <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                                <a href="/machines" class="btn btn-secondary">Anuluj</a>
                             </div>
                         </form>
                     </div>

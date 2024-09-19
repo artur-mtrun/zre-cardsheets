@@ -1,53 +1,98 @@
 <%- include('../includes/head.ejs') %>
-    
-    <link rel="stylesheet" href="/css/forms.css">
-    <link rel="stylesheet" href="/css/employee.css">
+<title>Dodaj pracownika</title>
+<style>
+    .narrow-form {
+        max-width: 500px;
+        margin: auto;
+    }
+    .narrow-form .form-control {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    .narrow-form .btn {
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    .form-label {
+        display: block;
+        text-align: center;
+    }
+    .invalid-feedback {
+        text-align: center;
+    }
+</style>
 </head>
 
 <body>
     <%- include('../includes/navigation.ejs') %>
     <main class="container mt-4">
         <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6 mb-4">
-                <% if (errorMessage) { %>
-                    <div class="alert alert-danger" role="alert"><%= errorMessage %></div>
-                <% } %>
-            </div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-md-4 col-lg-3">
-                <form action="/add-employee" method="POST" novalidate>
-                    <div class="mb-3">
-                        <label for="nick" class="form-label">Nazwisko i imię</label>
-                        <input type="text" class="form-control" name="nick" id="nick" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="enrollnumber" class="form-label">Numer pracowniczy</label>
-                        <input type="text" class="form-control" name="enrollnumber" 
-                        id="enrollnumber" required value="<%= new_enrollnumber%>"
-                        <% if (!session.isAdmin) { %>
-                            readonly
-                            <% } %>
-                            >
-                    </div>
-                    <div class="mb-3">
-                        <label for="cardnumber" class="form-label">Karta</label>
-                        <input type="text" class="form-control" name="cardnumber" id="cardnumber" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="area_id" class="form-label">Obszar</label>
-                        <input type="text" class="form-control" name="area_id" id="area_id" required value="<%= session.area_id%>"
-                        <% if (session.area_id !== 0) { %>
-                        readonly
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow narrow-form">
+                    <div class="card-body">
+                        <h1 class="card-title text-center mb-4">Dodaj nowego pracownika</h1>
+                        <% if (errorMessage) { %>
+                            <div class="alert alert-danger text-center" role="alert"><%= errorMessage %></div>
                         <% } %>
-                        >
-                    </div>
+                        <form action="/add-employee" method="POST" class="needs-validation" novalidate>
+                            <div class="mb-3">
+                                <label for="nick" class="form-label">Nazwisko i imię</label>
+                                <input type="text" class="form-control" name="nick" id="nick" required>
+                                <div class="invalid-feedback">
+                                    Proszę podać nazwisko i imię.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="enrollnumber" class="form-label">Numer pracowniczy</label>
+                                <input type="text" class="form-control" name="enrollnumber" id="enrollnumber" required 
+                                    value="<%= new_enrollnumber %>" <%= !session.isAdmin ? 'readonly' : '' %>>
+                                <div class="invalid-feedback">
+                                    Proszę podać numer pracowniczy.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cardnumber" class="form-label">Karta</label>
+                                <input type="text" class="form-control" name="cardnumber" id="cardnumber" required>
+                                <div class="invalid-feedback">
+                                    Proszę podać numer karty.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="area_id" class="form-label">Obszar</label>
+                                <input type="text" class="form-control" name="area_id" id="area_id" required 
+                                    value="<%= session.area_id %>" <%= session.area_id !== 0 ? 'readonly' : '' %>>
+                                <div class="invalid-feedback">
+                                    Proszę podać ID obszaru.
+                                </div>
+                            </div>
 
-                    <div class="d-flex justify-content-center mt-4">
-                        <button class="btn btn-success" type="submit">Dodaj pracownika</button>
+                            <div class="d-grid gap-2 mt-4">
+                                <button class="btn btn-primary" type="submit">Dodaj pracownika</button>
+                                <a href="/employees" class="btn btn-secondary">Anuluj</a>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </main>
+
+    <script>
+    // Skrypt do walidacji formularza po stronie klienta
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+    </script>
+
 <%- include('../includes/end.ejs') %>

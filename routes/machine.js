@@ -7,5 +7,5 @@ router.get('/add-machine', machineController.getAddMachine);
 router.post('/add-machine', machineController.postAddMachine);
 router.post('/remove-machine', machineController.postRemoveMachine);
 router.get('/edit-machine/:id', machineController.getEditMachine);
-router.post('/edit-machine', machineController.postEditMachine);
+router.post('/edit-machine:id', machineController.postEditMachine);
 module.exports = router;

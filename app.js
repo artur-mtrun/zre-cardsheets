@@ -20,6 +20,7 @@ app.use('/css', express.static(path.join(__dirname, 'node_modules/bootstrap/dist
 app.use('/js', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js')))
 app.use('/js', express.static(path.join(__dirname, 'node_modules/jquery/dist')))
 
+
 const eventsApiRoutes = require('./routes/eventsAPI');
 const cardRoutes = require('./routes/card');
 const employeeRoutes = require('./routes/employee');
