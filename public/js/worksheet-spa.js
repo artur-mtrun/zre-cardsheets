@@ -48,7 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateCalendar(); // Wywołaj updateCalendar po ustawieniu pierwszego pracownika
                 }
             })
-            .catch(error => console.error('Error fetching employees:', error));
+            .catch(error => {
+                console.error('Error fetching employees:', error);
+                alert('Wystąpił błąd podczas pobierania pracowników. Spróbuj ponownie później.'); // Dodany alert
+            });
     }
 
     function populateEmployeeFilter(employees) {
@@ -142,13 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Zbierz wszystkie wejścia i wyjścia
             dayEvents.forEach(event => {
-                if (event.in_out === 1) { // Wejście
+                if (event.in_out === 2) { // Wejście
                     inTimes.push(event.event_time);
                     machineNumbers.push(event.machinenumber);
-                } else if (event.in_out === 0) { // Wyjście
+                } else if (event.in_out === 3) { // Wyjście
                     outTimes.push(event.event_time);
                 }
             });
+
+            console.log('In times for day:', day, 'Times:', inTimes);
+            console.log('Out times for day:', day, 'Times:', outTimes);
 
             // Wypełnij komórki wejścia, wyjścia i nr czytnika
             inCell.textContent = inTimes.join(', ');
@@ -159,7 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const worksheetRow = worksheetTable.insertRow();
             const dayWorksheetData = worksheetData.find(ws => {
                 const wsDate = new Date(ws.event_date);
-                return wsDate.getDate() === day && wsDate.getMonth() === month && wsDate.getFullYear() === year;
+                //wsDate.setHours(0, 0, 0, 0); // Ustaw godziny na zero
+                const isSameDate = wsDate.getDate() === day && wsDate.getMonth() === month && wsDate.getFullYear() === year;
+                console.log('Sprawdzanie daty:', wsDate, 'Dopasowanie:', isSameDate); // Dodany log
+                return isSameDate;
             });
 
             console.log('Processing day:', day);

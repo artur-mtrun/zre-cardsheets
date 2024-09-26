@@ -51,7 +51,7 @@ sequelize.sync()
 .then(result => {
     //console.log(result);
     // Uruchomienie serwera na porcie 3000
-    app.listen(3000);
+    app.listen(3000, '10.0.1.54');
 })
 .catch(err => {
     console.log(err);

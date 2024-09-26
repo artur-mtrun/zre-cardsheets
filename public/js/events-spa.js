@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${event.machinenumber}</td>
         <td>${event.enrollnumber}</td>
         <td>${event.nick || 'N/A'}</td>
-        <td><span class="badge bg-${event.in_out === 1 ? 'success' : 'danger'}">${event.in_out === 1 ? 'In' : 'Out'}</span></td>
+        <td><span class="badge bg-${event.in_out === 2 ? 'success' : 'danger'}">${event.in_out === 2 ? 'We' : 'Wy'}</span></td>
         <td>${new Date(event.event_date).toLocaleDateString()}</td>
         <td>${event.event_time}</td>
         ${isAdmin ? `<td>

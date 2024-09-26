@@ -78,8 +78,11 @@ exports.getEvents = async (req, res) => {
 exports.getWorksheetData = async (req, res) => {
     try {
         const { year, month, enrollnumber } = req.query;
+        console.log('Pobieranie danych arkusza roboczego dla:', { year, month, enrollnumber }); // Dodany log
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0);
+
+        console.log('Zakres dat:', { startDate, endDate }); // Dodany log
 
         const worksheetData = await Worksheet.findAll({
             where: {
@@ -91,10 +94,12 @@ exports.getWorksheetData = async (req, res) => {
             order: [['event_date', 'ASC'], ['in_time', 'ASC']]
         });
 
+        console.log('Dane arkusza roboczego:', worksheetData); // Dodany log
+
         res.json(worksheetData);
     } catch (error) {
-        console.error('Error fetching worksheet data:', error);
-        res.status(500).json({ message: 'Internal server error', error: error.message });
+        console.error('Błąd podczas pobierania danych arkusza roboczego:', error);
+        res.status(500).json({ message: 'Wystąpił błąd serwera', error: error.message });
     }
 };
 exports.addWorksheetEntry = async (req, res) => {

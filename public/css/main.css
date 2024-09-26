@@ -74,17 +74,17 @@
 
 /* Wiersze worksheet czerwone, jeśli nie ma wpisu w bazie */
 #worksheetTable > tbody > tr.worksheet-row-red {
-  background-color: #f83250 !important;
+  background-color: #f3dbde !important;
 }
 
 /* Wiersze worksheet żółte, jeśli machinenumber = 0 */
 #worksheetTable > tbody > tr.worksheet-row-yellow {
-  background-color: #f7f74ef6 !important;
+  background-color: #e9e9c0f6 !important;
 }
 
 /* Wiersze worksheet jasnozielone, jeśli machinenumber > 0 */
 #worksheetTable > tbody > tr.worksheet-row-green {
-  background-color: #90EE90 !important;
+  background-color: #d4f5d4 !important;
 }
 
 /* Zapewnienie, że style są stosowane nawet przy hover */
@@ -113,6 +113,6 @@
 }
 
 #worksheetTable .btn-secondary {
-  background-color: #3f9ef1;
+  background-color: #082742;
   border-color: #191d20;
 }
