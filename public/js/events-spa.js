@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(events => {
         allEvents = events; // Zapisz wszystkie zdarzenia
-        renderEvents(events);
         populateEmployeeFilter(events);
+        applyFilters(); // Zastosuj filtry po załadowaniu wydarzeń
       })
       .catch(error => console.error('Error:', error));
   }
@@ -49,8 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function populateEmployeeFilter(events) {
     const employees = [...new Set(events.map(event => event.nick).filter(nick => nick))];
-    employeeFilter.innerHTML = '<option value="">All Employees</option>' +
+    
+    // Sortowanie pracowników w kolejności alfabetycznej
+    employees.sort((a, b) => a.localeCompare(b));
+
+    employeeFilter.innerHTML = '<option value="">Select Employee</option>' + // Zmieniono na "Select Employee"
       employees.map(employee => `<option value="${employee}">${employee}</option>`).join('');
+
+    // Ustaw domyślnie pierwszy pracownik, jeśli lista nie jest pusta
+    if (employees.length > 0) {
+        employeeFilter.value = employees[0]; // Ustawienie wartości na pierwszego pracownika
+    }
   }
 
   function applyFilters() {
