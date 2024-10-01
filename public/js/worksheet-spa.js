@@ -153,6 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            // Sortowanie godzin wejścia i wyjścia
+            inTimes.sort();
+            outTimes.sort();
+
             console.log('In times for day:', day, 'Times:', inTimes);
             console.log('Out times for day:', day, 'Times:', outTimes);
 

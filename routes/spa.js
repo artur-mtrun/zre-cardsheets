@@ -19,4 +19,13 @@ router.get('/worksheets-spa', (req, res) => {
   });
 });
 
+router.get('/events-count', (req, res) => {
+  res.render('events/events-count', {
+    pageTitle: 'Events Count',
+    path: '/events-count',
+    isAdmin: req.session.isAdmin, // lub jakkolwiek sprawdzasz uprawnienia admina
+    isAuthenticated: req.session.isLoggedIn
+  });
+});
+
 module.exports = router;
