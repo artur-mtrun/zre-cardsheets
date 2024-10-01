@@ -1,11 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
   const eventsList = document.getElementById('events-list');
   const eventForm = document.getElementById('event-form');
-  const dateFilter = document.getElementById('date-filter');
+  const monthFilter = document.getElementById('month-filter');
+  const yearFilter = document.getElementById('year-filter');
   const employeeFilter = document.getElementById('employee-filter');
   const applyFiltersBtn = document.getElementById('apply-filters');
 
   let allEvents = []; // Przechowuje wszystkie zdarzenia
+
+  function initializeFilters() {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // getMonth() zwraca 0-11
+
+    // Wypełnij filtr roku
+    for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      yearFilter.appendChild(option);
+    }
+    yearFilter.value = currentYear;
+
+    // Ustaw domyślny miesiąc
+    monthFilter.value = currentMonth;
+  }
 
   function fetchEvents() {
     fetch('/api/events')
@@ -63,13 +82,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyFilters() {
-    const selectedDate = dateFilter.value;
+    const selectedYear = yearFilter.value;
+    const selectedMonth = monthFilter.value.padStart(2, '0');
     const selectedEmployee = employeeFilter.value;
 
     const filteredEvents = allEvents.filter(event => {
-      const dateMatch = !selectedDate || event.event_date.startsWith(selectedDate);
+      const [eventYear, eventMonth] = event.event_date.split('-');
+      const yearMatch = eventYear === selectedYear;
+      const monthMatch = eventMonth === selectedMonth;
       const employeeMatch = !selectedEmployee || event.nick === selectedEmployee;
-      return dateMatch && employeeMatch;
+      return yearMatch && monthMatch && employeeMatch;
     });
 
     renderEvents(filteredEvents);
@@ -127,5 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  initializeFilters();
   fetchEvents();
 });

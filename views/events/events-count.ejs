@@ -12,24 +12,42 @@
             <h1 class="text-success">Rejestracja Czasu Pracy - Widok Count</h1>
             <div>
                 <a href="/worksheets-spa" class="btn btn-primary me-2">Karty Pracy</a>
-                <a href="/events" class="btn btn-secondary">Powrót do Głównego Widoku</a>
+                <a href="/events-spa" class="btn btn-secondary">Powrót do Głównego Widoku</a>
             </div>
         </div>
         
         <div class="row mb-4">
-            <div class="col-md-4">
-                <label for="date-filter" class="form-label">Filtruj po dacie:</label>
-                <input type="date" id="date-filter" class="form-control">
-            </div>
-            <div class="col-md-4">
-                <label for="employee-filter" class="form-label">Filtruj po pracowniku:</label>
-                <select id="employee-filter" class="form-select">
-                    <option value="">Wszyscy pracownicy</option>
-                    <!-- Options will be populated dynamically -->
+            <div class="col-md-3">
+                <label for="month-filter" class="form-label">Miesiąc:</label>
+                <select id="month-filter" class="form-select">
+                    <option value="01">Styczeń</option>
+                    <option value="02">Luty</option>
+                    <option value="03">Marzec</option>
+                    <option value="04">Kwiecień</option>
+                    <option value="05">Maj</option>
+                    <option value="06">Czerwiec</option>
+                    <option value="07">Lipiec</option>
+                    <option value="08">Sierpień</option>
+                    <option value="09">Wrzesień</option>
+                    <option value="10">Październik</option>
+                    <option value="11">Listopad</option>
+                    <option value="12">Grudzień</option>
                 </select>
             </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button id="apply-filters" class="btn btn-primary">Zatwierdź</button>
+            <div class="col-md-3">
+                <label for="year-filter" class="form-label">Rok:</label>
+                <select id="year-filter" class="form-select">
+                    <!-- Opcje będą dodane dynamicznie przez JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="employee-filter" class="form-label">Pracownik:</label>
+                <select id="employee-filter" class="form-select">
+                    <!-- Opcje będą dodane dynamicznie -->
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button id="apply-filters" class="btn btn-primary">Zastosuj filtry</button>
             </div>
         </div>
 
