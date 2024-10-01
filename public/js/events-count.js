@@ -55,21 +55,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('Po sortowaniu:', events);
 
+    let totalWorkTime = 0;
+    let lastInTime = null;
+
     // Renderowanie tabeli z pełnymi danymi wydarzeń
-    eventsList.innerHTML = events.map((event, index) => `
+    eventsList.innerHTML = events.map((event, index) => {
+      let workTime = '';
+      if (event.in_out === 3 && lastInTime) { // Wyjście
+        const inTime = new Date(`2000-01-01T${lastInTime}`);
+        const outTime = new Date(`2000-01-01T${event.event_time}`);
+        const diff = (outTime - inTime) / (1000 * 60 * 60); // różnica w godzinach
+        workTime = diff.toFixed(2);
+        totalWorkTime += parseFloat(workTime);
+        lastInTime = null;
+      } else if (event.in_out === 2) { // Wejście
+        lastInTime = event.event_time;
+      }
+
+      return `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${event.machinenumber}</td>
+          <td>${event.enrollnumber}</td>
+          <td>${event.nick || 'N/A'}</td>
+          <td><span class="badge bg-${event.in_out === 2 ? 'success' : 'danger'}">${event.in_out === 2 ? 'We' : 'Wy'}</span></td>
+          <td>${event.event_date.split('T')[0]}</td>
+          <td>${event.event_time}</td>
+          <td>${workTime}</td>
+          ${isAdmin ? `<td>
+            <button class="btn btn-danger btn-sm delete-event" data-id="${event.event_id}">Delete</button>
+          </td>` : ''}
+        </tr>
+      `;
+    }).join('');
+
+    // Dodanie wiersza z sumą czasu pracy
+    eventsList.innerHTML += `
       <tr>
-        <td>${index + 1}</td>
-        <td>${event.machinenumber}</td>
-        <td>${event.enrollnumber}</td>
-        <td>${event.nick || 'N/A'}</td>
-        <td><span class="badge bg-${event.in_out === 2 ? 'success' : 'danger'}">${event.in_out === 2 ? 'We' : 'Wy'}</span></td>
-        <td>${event.event_date.split('T')[0]}</td>
-        <td>${event.event_time}</td>
-        ${isAdmin ? `<td>
-          <button class="btn btn-danger btn-sm delete-event" data-id="${event.event_id}">Delete</button>
-        </td>` : ''}
+        <td colspan="7" style="text-align: right;"><strong>Suma czasu pracy:</strong></td>
+        <td><strong>${totalWorkTime.toFixed(2)}</strong></td>
+        ${isAdmin ? '<td></td>' : ''}
       </tr>
-    `).join('');
+    `;
 
     if (isAdmin) {
       document.querySelectorAll('.delete-event').forEach(button => {
