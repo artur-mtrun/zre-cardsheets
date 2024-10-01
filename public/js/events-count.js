@@ -44,14 +44,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderEvents(events) {
-    eventsList.innerHTML = events.map(event => `
+    console.log('Przed sortowaniem:', events);
+    
+    // Sortowanie wydarzeń po dacie i czasie od najstarszych do najnowszych
+    events.sort((a, b) => {
+      const dateA = new Date(a.event_date);
+      const dateB = new Date(b.event_date);
+      return dateA - dateB || a.event_time.localeCompare(b.event_time);
+    });
+
+    console.log('Po sortowaniu:', events);
+
+    // Renderowanie tabeli z pełnymi danymi wydarzeń
+    eventsList.innerHTML = events.map((event, index) => `
       <tr>
-        <td>${event.event_id}</td>
+        <td>${index + 1}</td>
         <td>${event.machinenumber}</td>
         <td>${event.enrollnumber}</td>
         <td>${event.nick || 'N/A'}</td>
         <td><span class="badge bg-${event.in_out === 2 ? 'success' : 'danger'}">${event.in_out === 2 ? 'We' : 'Wy'}</span></td>
-        <td>${new Date(event.event_date).toLocaleDateString()}</td>
+        <td>${event.event_date.split('T')[0]}</td>
         <td>${event.event_time}</td>
         ${isAdmin ? `<td>
           <button class="btn btn-danger btn-sm delete-event" data-id="${event.event_id}">Delete</button>
@@ -72,12 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sortowanie pracowników w kolejności alfabetycznej
     employees.sort((a, b) => a.localeCompare(b));
 
-    employeeFilter.innerHTML = '<option value="">Select Employee</option>' + // Zmieniono na "Select Employee"
+    employeeFilter.innerHTML = '<option value="">Select Employee</option>' +
       employees.map(employee => `<option value="${employee}">${employee}</option>`).join('');
 
     // Ustaw domyślnie pierwszy pracownik, jeśli lista nie jest pusta
     if (employees.length > 0) {
-        employeeFilter.value = employees[0]; // Ustawienie wartości na pierwszego pracownika
+        employeeFilter.value = employees[0];
     }
   }
 
