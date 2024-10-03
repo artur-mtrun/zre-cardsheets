@@ -1,6 +1,8 @@
 const { Sequelize } = require('sequelize');
 const {Event} = require('../models/event');
 const {Employee} = require('../models/employee');
+const { Op } = require('sequelize');
+
 
 exports.getAllEvents = async (req, res, next) => {
   if (!req.session.isLoggedIn) {
@@ -111,39 +113,69 @@ exports.getEventsByMonth = async (req, res) => {
 exports.getEventsByMonthAndEmployee = async (req, res) => {
     try {
         const { year, month, enrollnumber } = req.query;
+        console.log('Otrzymane parametry:', year, month, enrollnumber);
+
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
+        console.log('Data początkowa:', startDate, 'Data końcowa:', endDate);
+
+        const whereClause = {
+            event_date: {
+                [Op.between]: [startDate, endDate]
+            }
+        };
+
+        if (enrollnumber) {
+            whereClause.enrollnumber = enrollnumber;
+        }
 
         const events = await Event.findAll({
-            where: {
-                event_date: {
-                    [Sequelize.Op.between]: [startDate, endDate]
-                },
-                enrollnumber: enrollnumber
-            },
-            attributes: [
-                'event_id', 'machinenumber', 'enrollnumber', 'in_out', 'event_date', 'event_time',
-                [Sequelize.literal(`(SELECT "nick" FROM "employees" WHERE "employees"."enrollnumber" = "event"."enrollnumber")`), 'nick']
-            ],
+            where: whereClause,
             order: [['event_date', 'ASC'], ['event_time', 'ASC']]
         });
 
-        res.json(events);
+        console.log('Znalezione wydarzenia:', events.length);
+
+        // Pobierz wszystkich pracowników
+        const employees = await Employee.findAll({
+            attributes: ['enrollnumber', 'nick']
+        });
+
+        // Utwórz mapę pracowników dla szybkiego dostępu
+        const employeeMap = new Map(employees.map(emp => [emp.enrollnumber, emp.nick]));
+
+        // Dodaj nick do każdego eventu
+        const eventsWithNick = events.map(event => ({
+            ...event.toJSON(),
+            nick: employeeMap.get(event.enrollnumber) || 'Nieznany'
+        }));
+
+        res.json(eventsWithNick);
     } catch (error) {
-        console.error('Error fetching events:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('Błąd podczas pobierania wydarzeń:', error);
+        res.status(500).json({ message: 'Wewnętrzny błąd serwera', error: error.message });
     }
 };
 
 exports.getEmployees = async (req, res) => {
   try {
-      const employees = await Employee.findAll({
-          attributes: ['enrollnumber', 'nick'],
-          order: [['nick', 'ASC']]
-      });
-      res.json(employees);
+    const isAdmin = req.session.is_admin;
+    const operatorAreaId = req.session.area_id;
+
+    let whereClause = {};
+    if (!isAdmin) {
+      whereClause.area_id = operatorAreaId;
+    }
+
+    const employees = await Employee.findAll({
+      where: whereClause,
+      attributes: ['enrollnumber', 'nick'],
+      order: [['nick', 'ASC']]
+    });
+
+    res.json(employees);
   } catch (error) {
-      console.error('Error fetching employees:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    console.error('Error fetching employees:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
