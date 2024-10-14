@@ -1,6 +1,7 @@
 const { body } = require('express-validator');
 const { Card } = require('../models/card');
 const { Employee } = require('../models/employee');
+const { Company } = require('../models/company');
 
 const addEmployeeValidators = [
     body('cardnumber').custom(async (value, { req }) => {
@@ -33,9 +34,28 @@ const addEmployeeValidators = [
             return true;
         }
     }),
+    body('company_id')
+        .optional() // Dodaj tę linię
+        .notEmpty().withMessage('Proszę wybrać firmę')
+        .isInt().withMessage('Nieprawidłowe ID firmy')
+        .custom(async (value) => {
+            const company = await Company.findByPk(value);
+            if (!company) {
+                throw new Error('Wybrana firma nie istnieje');
+            }
+            return true;
+        }),
     // Tutaj możesz dodać więcej walidatorów, jeśli są potrzebne
 ];
 
+const assignCardValidators = [
+    body('cardnumber').custom(async (value, { req }) => {
+        // Tutaj możesz dodać walidację specyficzną dla przypisywania karty
+        // Na przykład, sprawdzenie czy karta istnieje i nie jest przypisana do innego pracownika
+    }),
+];
+
 module.exports = {
-    addEmployeeValidators
+    addEmployeeValidators,
+    assignCardValidators
 };

@@ -11,14 +11,13 @@ Company.init({
         allowNull: false,
         primaryKey: true
     },
-
     company_descript: {
         type: DataTypes.STRING,
         allowNull: false
     }
 }, {    
-    sequelize, // Przekazanie instancji Sequelize   
+    sequelize,
     modelName: 'company'
 });
 
-module.exports = {Company};
+module.exports = { Company };

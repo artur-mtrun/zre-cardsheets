@@ -8,6 +8,7 @@ const sequelize = require('./utils/database');
 const cors = require('cors');
 const morgan = require('morgan');
 require('dotenv').config();
+require('./models/associations');
 
 const app = express();
 
@@ -60,5 +61,3 @@ sequelize.sync()
 .catch(err => {
     console.log(err);
 });
-
-

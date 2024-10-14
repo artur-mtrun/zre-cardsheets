@@ -1,10 +1,10 @@
 const Card = require('./card');
 const {Sequelize, Model, DataTypes } = require('sequelize');
 const sequelize = require('../utils/database');
+
 class Employee extends Model {}
 
 Employee.init({
-
     employee_id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -31,12 +31,14 @@ Employee.init({
     to_send: {
         type: DataTypes.BOOLEAN,
         allowNull: false
+    },
+    company_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false
     }
-},
-{
+}, {
     sequelize,
     modelName: 'employee'
-  });
+});
 
-
-module.exports = {Employee};
+module.exports = { Employee };

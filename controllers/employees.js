@@ -1,4 +1,4 @@
-const { Employee } = require('../models/employee');
+const { Employee, Company } = require('../models/associations');
 const { validationResult } = require('express-validator');
 const { 
     checkAuth, 
@@ -10,7 +10,9 @@ const {
 exports.getEmployees = async (req, res, next) => {
     if (!checkAuth(req, res)) return;
 
-    let findOptions = {};
+    let findOptions = {
+        include: [{ model: Company, as: 'Company' }]
+    };
     
     if (req.session.area_id !== 0) {
         findOptions.where = { area_id: req.session.area_id };
@@ -40,26 +42,28 @@ exports.getAddEmployee = async(req, res, next) => {
 
     try {
         const new_enrollnumber = await getLastEmployeeNumber();
+        const companies = await Company.findAll();
         console.log('Nowy numer pracownika:', new_enrollnumber);
         
         renderViewWithError(res, 'employees/add-employee', {
             req,
             new_enrollnumber,
+            companies,
             pageTitle: 'Dodaj Pracownika',
             path: '/add-employee',
             isAuthenticated: req.session.isLoggedIn,
             isAdmin: req.session.isAdmin,
-            session: req.session  // Dodaj tę linię
+            session: req.session
         });
     } catch (err) {
-        console.error('Błąd podczas pobierania numeru pracownika:', err);
+        console.error('Błąd podczas pobierania danych:', err);
         next(err);
     }
 };
 exports.postAddEmployee = async (req, res, next) => {
     if (!checkAuth(req, res)) return;
     console.log('Dodawanie pracownika');
-    const { nick, enrollnumber, area_id, cardnumber } = req.body;
+    const { nick, enrollnumber, area_id, cardnumber, company_id } = req.body;
     const to_send = true;
     const errors = validationResult(req);
     
@@ -73,13 +77,14 @@ exports.postAddEmployee = async (req, res, next) => {
         });
     }
     
-    console.log('Dodawanie pracownika: ', nick, enrollnumber, area_id, cardnumber, to_send);
+    console.log('Dodawanie pracownika: ', nick, enrollnumber, area_id, cardnumber, company_id, to_send);
     try {
         await Employee.create({
             nick,
             enrollnumber,
             area_id,
             cardnumber,
+            company_id,
             to_send
         });
         res.redirect('/');
@@ -146,3 +151,6 @@ exports.postAssignCard = async (req, res, next) => {
     }
 };
 //początek wydzielania
+
+
+

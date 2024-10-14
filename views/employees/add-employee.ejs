@@ -65,6 +65,18 @@
                                     Proszę podać ID obszaru.
                                 </div>
                             </div>
+                            <div class="mb-3">
+                                <label for="company_id" class="form-label">Firma</label>
+                                <select class="form-control" name="company_id" id="company_id" required>
+                                    <option value="">Wybierz firmę</option>
+                                    <% companies.forEach(company => { %>
+                                        <option value="<%= company.company_id %>"><%= company.company_descript %></option>
+                                    <% }); %>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Proszę wybrać firmę.
+                                </div>
+                            </div>
 
                             <div class="d-grid gap-2 mt-4">
                                 <button class="btn btn-primary" type="submit">Dodaj pracownika</button>
