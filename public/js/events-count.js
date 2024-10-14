@@ -67,8 +67,25 @@ function renderEventsTable(events) {
         return;
     }
 
+    let totalWorkTime = 0;
+
     events.forEach((event, index) => {
         const row = document.createElement('tr');
+        const previousEvent = events[index - 1] ? events[index - 1] : null;
+        const workTime = previousEvent ? calculateWorkTime(event, previousEvent) : '';
+        
+        console.log(`Czas pracy dla zdarzenia ${index + 1}:`, workTime);
+        
+        if (workTime && workTime !== '') {
+            const seconds = convertTimeToSeconds(workTime);
+            console.log(`Czas w sekundach:`, seconds);
+            if (!isNaN(seconds)) {
+                totalWorkTime += seconds;
+            } else {
+                console.error(`Nieprawidłowy czas w sekundach dla zdarzenia ${index + 1}:`, seconds);
+            }
+        }
+
         row.innerHTML = `
             <td>${index + 1}</td>
             <td>${event.machinenumber}</td>
@@ -77,16 +94,51 @@ function renderEventsTable(events) {
             <td>${event.in_out === 2 ? 'We' : 'Wy'}</td>
             <td>${new Date(event.event_date).toLocaleDateString()}</td>
             <td>${event.event_time}</td>
-            <td>${calculateWorkTime(event)}</td>
+            <td>${workTime}</td>
         `;
         tableBody.appendChild(row);
     });
+
+    console.log('Całkowity czas pracy w sekundach:', totalWorkTime);
+
+    // Dodaj wiersz z sumą godzin
+    const totalRow = document.createElement('tr');
+    const formattedTotalTime = formatSeconds(totalWorkTime);
+    console.log('Sformatowany całkowity czas:', formattedTotalTime);
+    
+    totalRow.innerHTML = `
+        <td colspan="7" style="text-align: right;"><strong>Suma godzin:</strong></td>
+        <td><strong>${formattedTotalTime}</strong></td>
+    `;
+    tableBody.appendChild(totalRow);
 }
 
-function calculateWorkTime(event) {
-    // Tutaj możesz dodać logikę obliczania czasu pracy
-    // Na razie zwracamy pusty string
-    return '';
+function calculateWorkTime(event, previousEvent) {
+    if (event.in_out === 3 && previousEvent && previousEvent.in_out === 2) {
+        console.log('Event:', event);
+        console.log('Previous event:', previousEvent);
+        
+        const eventDateTime = new Date(event.event_date.split('T')[0] + 'T' + event.event_time);
+        const previousEventDateTime = new Date(previousEvent.event_date.split('T')[0] + 'T' + previousEvent.event_time);
+        
+        console.log('Event date time:', eventDateTime);
+        console.log('Previous event date time:', previousEventDateTime);
+        
+        if (isNaN(eventDateTime.getTime()) || isNaN(previousEventDateTime.getTime())) {
+            console.error('Nieprawidłowy format daty lub czasu');
+            return ''; // Zwracamy pusty string zamiast '---'
+        }
+        
+        const workTime = eventDateTime.getTime() - previousEventDateTime.getTime();
+        console.log('Work time in milliseconds:', workTime);
+        
+        const hours = Math.floor(workTime / (1000 * 60 * 60));
+        const minutes = Math.floor((workTime % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((workTime % (1000 * 60)) / 1000);
+        
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return ''; // Zwracamy pusty string zamiast '---'
 }
 
 function fetchFilteredEvents(year, month, enrollnumber) {
@@ -98,4 +150,17 @@ function fetchFilteredEvents(year, month, enrollnumber) {
             renderEventsTable(events);
         })
         .catch(error => console.error('Error fetching filtered events:', error));
+}
+
+function convertTimeToSeconds(timeString) {
+    if (!timeString) return 0;
+    const [hours, minutes, seconds] = timeString.split(':').map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
+}
+
+function formatSeconds(totalSeconds) {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }

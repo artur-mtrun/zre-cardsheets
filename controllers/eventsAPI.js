@@ -159,7 +159,8 @@ exports.getEventsByMonthAndEmployee = async (req, res) => {
 
 exports.getEmployees = async (req, res) => {
   try {
-    const isAdmin = req.session.is_admin;
+    const isAdmin = req.session.isAdmin;
+    console.log('isAdmin:', isAdmin);
     const operatorAreaId = req.session.area_id;
 
     let whereClause = {};
