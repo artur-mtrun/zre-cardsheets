@@ -8,7 +8,10 @@
         <div class="alert alert-danger" role="alert"><%= errorMessage %></div>
     <% } %>
     <main class="container mt-4">
-        <h1 class="mb-4 centered-heading">Lista pracowników</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="centered-heading">Lista pracowników</h1>
+            <a href="/add-employee" class="btn btn-primary">Dodaj pracownika</a>
+        </div>
         <% if (employees.length > 0) { %>
             <table class="table table-striped table-hover">
                 <thead class="table-success">

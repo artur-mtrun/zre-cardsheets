@@ -5,12 +5,10 @@
 <body>
     <%- include('../includes/navigation.ejs') %>
     <main class="container mt-4">
-        <!-- Nagłówek strony -->
-        <h1 class="mb-4 text-center">Lista operatorów</h1>
-        
-        <!-- Dodanie przycisku do dodawania nowego operatora -->
-        <div class="mb-3">
-            <a href="/add-operator" class="btn btn-success">Dodaj nowego operatora</a>
+        <!-- Nagłówek strony i przycisk dodawania -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="centered-heading">Lista operatorów</h1>
+            <a href="/add-operator" class="btn btn-primary">Dodaj operatora</a>
         </div>
         
         <!-- Sprawdzenie, czy istnieją operatorzy do wyświetlenia -->
@@ -39,9 +37,11 @@
                             <td><%= operator.is_admin ? "Tak" : "Nie" %></td>
                             <td><%= operator.area_id %></td>
                             <td>
-                                <!-- Tutaj możesz dodać przyciski akcji, np. edycji lub usuwania -->
-                                <button class="btn btn-primary btn-sm">Edytuj</button>
-                                <button class="btn btn-danger btn-sm">Usuń</button>
+                                <a href="/edit-operator/<%= operator.id %>" class="btn btn-warning btn-sm">Edytuj</a>
+                                <form action="/delete-operator" method="POST" class="d-inline">
+                                    <input type="hidden" value="<%= operator.id %>" name="operatorId">
+                                    <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('Czy na pewno chcesz usunąć tego operatora?')">Usuń</button>
+                                </form>
                             </td>
                         </tr>
                     <% }) %>
