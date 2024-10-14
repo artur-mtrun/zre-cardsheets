@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../utils/database');
+const { Account } = require('./account');
 
 const Worksheet = sequelize.define('worksheet', {
- 
     worksheet_id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -28,7 +28,17 @@ const Worksheet = sequelize.define('worksheet', {
     out_time: {
         type: DataTypes.TIME,
         allowNull: false
+    },
+    account_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Account,
+            key: 'account_id'
+        }
     }
 });
 
-module.exports = {Worksheet, Event};
+Worksheet.belongsTo(Account, { foreignKey: 'account_id' });
+
+module.exports = { Worksheet };

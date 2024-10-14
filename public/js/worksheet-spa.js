@@ -1,6 +1,31 @@
 let employees = [];
 let events = [];
 
+// Globalna zmienna do przechowywania kont
+let globalAccounts = [];
+
+// Funkcja do pobrania kont, którą wywołamy na początku
+function fetchAccounts() {
+    console.log('Rozpoczęto pobieranie kont');
+    return fetch('/api/worksheet/accounts')
+        .then(response => {
+            console.log('Odpowiedź z /api/worksheet/accounts otrzymana:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(accounts => {
+            console.log('Pobrane konta:', accounts);
+            globalAccounts = accounts; // Upewnij się, że ta linia jest obecna
+            return accounts;
+        })
+        .catch(error => {
+            console.error('Błąd podczas pobierania kont:', error);
+            return [];
+        });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const monthFilter = document.getElementById('monthFilter');
     const yearFilter = document.getElementById('yearFilter');
@@ -104,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dayNames = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
 
         const headerRow = worksheetTable.insertRow();
-        ['Data', 'Dzień tygodnia', 'Nr czytnika', 'Wejście', 'Wyjście', 'Suma czasu'].forEach(text => {
+        ['Data', 'Dzień tygodnia', 'Nr czytnika', 'Wejście', 'Wyjście', 'Konto', 'Suma czasu'].forEach(text => {
             const th = document.createElement('th');
             th.textContent = text;
             headerRow.appendChild(th);
@@ -190,16 +215,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 worksheetRow.insertCell().textContent = dayWorksheetData.machinenumber || '0';
                 
-                const inTimeInput = document.createElement('input');
-                inTimeInput.type = 'time';
-                inTimeInput.value = dayWorksheetData.in_time || '';
-                worksheetRow.insertCell().appendChild(inTimeInput);
+                // Zmiana na elementy span zamiast input dla wejścia i wyjścia
+                const inTimeSpan = document.createElement('span');
+                inTimeSpan.textContent = dayWorksheetData.in_time || '';
+                worksheetRow.insertCell().appendChild(inTimeSpan);
                 
-                const outTimeInput = document.createElement('input');
-                outTimeInput.type = 'time';
-                outTimeInput.value = dayWorksheetData.out_time || '';
-                worksheetRow.insertCell().appendChild(outTimeInput);
+                const outTimeSpan = document.createElement('span');
+                outTimeSpan.textContent = dayWorksheetData.out_time || '';
+                worksheetRow.insertCell().appendChild(outTimeSpan);
                 
+                // Dodaj komórkę dla konta
+                const accountCell = worksheetRow.insertCell();
+                const accountSelect = document.createElement('select');
+                accountSelect.classList.add('form-select', 'form-select-sm');
+                populateAccountSelect(accountSelect, dayWorksheetData.account_id);
+                accountCell.appendChild(accountSelect);
+
+                // Komórka sumy czasu
                 const worksheetSumCell = worksheetRow.insertCell();
 
                 // Oblicz sumę czasu dla wpisu worksheet
@@ -243,7 +275,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 outTimeInput.type = 'time';
                 outTimeInput.value = outTimes[outTimes.length - 1] || '';
                 worksheetRow.insertCell().appendChild(outTimeInput);
-                
+
+                // Dodaj pole wyboru konta
+                const accountCell = worksheetRow.insertCell();
+                const accountSelect = document.createElement('select');
+                accountSelect.classList.add('form-select', 'form-select-sm');
+                populateAccountSelect(accountSelect); // Wywołaj tę funkcję tutaj
+                worksheetRow.cells[5].appendChild(accountSelect);
+
                 worksheetRow.insertCell(); // Pusta komórka dla sumy czasu
 
                 // Kolorowanie wiersza na jasnoczerwono
@@ -266,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         totalRow.insertCell(); // Pusty dla nr czytnika
         totalRow.insertCell(); // Pusty dla wejścia
         totalRow.insertCell(); // Pusty dla wyjścia
+        totalRow.insertCell(); // Pusty dla konta
         const totalMonthCell = totalRow.insertCell();
         const totalHours = Math.floor(totalMonthTime / 60);
         const totalMinutes = totalMonthTime % 60;
@@ -313,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const worksheetRow = rows[i + 1];
                 const inTimeInput = worksheetRow.cells[3].querySelector('input');
                 const outTimeInput = worksheetRow.cells[4].querySelector('input');
+                const accountSelect = worksheetRow.cells[5].querySelector('select');
                 
                 console.log(`Dodawanie wpisu dla ${day}-${parseInt(selectedMonth) + 1}-${selectedYear}, pracownik: ${selectedEnrollNumber}, czytnik: ${machineNumber}: ${inTimeInput.value} - ${outTimeInput.value}`);
                 
@@ -328,7 +369,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         enrollnumber: selectedEnrollNumber,
                         machinenumber: machineNumber || '0', // Dodajemy '0' jako wartość domyślną
                         in_time: inTimeInput.value,
-                        out_time: outTimeInput.value
+                        out_time: outTimeInput.value,
+                        account_id: accountSelect.value
                     })
                 })
                 .then(response => {
@@ -367,10 +409,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rows[i].cells[0].textContent.startsWith(`${day} ${selectedMonthName}`)) {
                 const worksheetRow = rows[i + 1];
                 const machineNumber = worksheetRow.cells[2].textContent;
-                const inTimeInput = worksheetRow.cells[3].querySelector('input');
-                const outTimeInput = worksheetRow.cells[4].querySelector('input');
+                const inTimeSpan = worksheetRow.cells[3].querySelector('span');
+                const outTimeSpan = worksheetRow.cells[4].querySelector('span');
+                const accountSelect = worksheetRow.cells[5].querySelector('select');
                 
-                console.log(`Edycja wpisu ${id} dla ${day}-${parseInt(selectedMonth) + 1}-${selectedYear}, pracownik: ${selectedEnrollNumber}, czytnik: ${machineNumber}: ${inTimeInput.value} - ${outTimeInput.value}`);
+                console.log(`Edycja wpisu ${id} dla ${day}-${parseInt(selectedMonth) + 1}-${selectedYear}, pracownik: ${selectedEnrollNumber}, czytnik: ${machineNumber}: ${inTimeSpan.textContent} - ${outTimeSpan.textContent}`);
                 
                 // Zmiana ścieżki URL z /worksheet/edit/${id} na /worksheet/edit-entry/${id}
                 fetch(`api/worksheet/edit-entry/${id}`, {
@@ -384,8 +427,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         year: selectedYear,
                         enrollnumber: selectedEnrollNumber,
                         machinenumber: machineNumber,
-                        in_time: inTimeInput.value,
-                        out_time: outTimeInput.value
+                        in_time: inTimeSpan.textContent,
+                        out_time: outTimeSpan.textContent,
+                        account_id: accountSelect.value
                     })
                 })
                 .then(response => {
@@ -413,9 +457,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    populateYearFilter();
-    initializeFilters();
-    fetchEmployees();
+    // Zmodyfikowana funkcja populateAccountSelect
+    function populateAccountSelect(selectElement, selectedAccountId) {
+        console.log('Rozpoczęto wypełnianie listy kont');
+        selectElement.innerHTML = ''; // Wyczyść istniejące opcje
+        
+        if (globalAccounts.length === 0) {
+            console.warn('Lista kont jest pusta');
+            const errorOption = document.createElement('option');
+            errorOption.textContent = 'Brak dostępnych kont';
+            selectElement.appendChild(errorOption);
+        } else {
+            // Dodaj domyślną opcję
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Wybierz konto';
+            selectElement.appendChild(defaultOption);
+
+            globalAccounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.account_id;
+                option.textContent = `${account.account_number} - ${account.account_descript}`;
+                selectElement.appendChild(option);
+            });
+        }
+        console.log('Zakończono wypełnianie listy kont. Liczba opcji:', selectElement.options.length);
+
+        // Ustaw wartość konta, jeśli istnieje
+        if (selectedAccountId) {
+            selectElement.value = selectedAccountId;
+        }
+    }
+
+    // Dodaj wywołanie fetchAccounts przed innymi operacjami
+    fetchAccounts().then(() => {
+        populateYearFilter();
+        initializeFilters();
+        fetchEmployees();
+    });
 
     monthFilter.addEventListener('change', updateCalendar);
     yearFilter.addEventListener('change', updateCalendar);

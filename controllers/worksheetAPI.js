@@ -2,6 +2,7 @@ const {Worksheet} = require('../models/worksheet');
 const { Employee } = require('../models/employee');
 const { Event } = require('../models/event');
 const { Op } = require('sequelize');
+const { Account } = require('../models/account');
 
 
 exports.getWorksheets = async (req, res) => {
@@ -78,11 +79,11 @@ exports.getEvents = async (req, res) => {
 exports.getWorksheetData = async (req, res) => {
     try {
         const { year, month, enrollnumber } = req.query;
-        console.log('Pobieranie danych arkusza roboczego dla:', { year, month, enrollnumber }); // Dodany log
+        console.log('Pobieranie danych arkusza roboczego dla:', { year, month, enrollnumber });
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0);
 
-        console.log('Zakres dat:', { startDate, endDate }); // Dodany log
+        console.log('Zakres dat:', { startDate, endDate });
 
         const worksheetData = await Worksheet.findAll({
             where: {
@@ -91,10 +92,11 @@ exports.getWorksheetData = async (req, res) => {
                     [Op.between]: [startDate, endDate]
                 }
             },
+            include: [{ model: Account, attributes: ['account_number', 'account_descript'] }],
             order: [['event_date', 'ASC'], ['in_time', 'ASC']]
         });
 
-        console.log('Dane arkusza roboczego:', worksheetData); // Dodany log
+        console.log('Dane arkusza roboczego:', worksheetData);
 
         res.json(worksheetData);
     } catch (error) {
@@ -102,9 +104,10 @@ exports.getWorksheetData = async (req, res) => {
         res.status(500).json({ message: 'Wystąpił błąd serwera', error: error.message });
     }
 };
+
 exports.addWorksheetEntry = async (req, res) => {
     try {
-        const { day, month, year, enrollnumber, machinenumber, in_time, out_time } = req.body;
+        const { day, month, year, enrollnumber, machinenumber, in_time, out_time, account_id } = req.body;
         
         // Tworzenie daty z otrzymanych danych
         const event_date = new Date(year, month - 1, day);
@@ -129,7 +132,8 @@ exports.addWorksheetEntry = async (req, res) => {
             event_date,
             machinenumber,
             in_time,
-            out_time
+            out_time,
+            account_id
         });
 
         console.log('Utworzony nowy wpis:', newEntry);
@@ -145,7 +149,7 @@ exports.postEditEntry = async (req, res) => {
     try {
         const { id } = req.params;
         console.log('Otrzymane ID do edycji:', id);
-        const { day, month, year, enrollnumber, machinenumber, in_time, out_time } = req.body;
+        const { day, month, year, enrollnumber, machinenumber, in_time, out_time, account_id } = req.body;
         
         const event_date = new Date(year, month - 1, day);
 
@@ -155,7 +159,8 @@ exports.postEditEntry = async (req, res) => {
                 event_date,
                 machinenumber,
                 in_time,
-                out_time
+                out_time,
+                account_id
             },
             {
                 where: { worksheet_id: id },
@@ -171,5 +176,21 @@ exports.postEditEntry = async (req, res) => {
     } catch (error) {
         console.error('Błąd podczas aktualizacji wpisu:', error);
         res.status(500).json({ message: 'Wystąpił błąd podczas aktualizacji wpisu', error: error.message });
+    }
+};
+
+// Dodaj nową funkcję do pobierania kont (będzie używana do wypełniania select'a w formularzu)
+exports.getAccounts = async (req, res) => {
+    try {
+        console.log('Controller: Otrzymano żądanie getAccounts');
+        const accounts = await Account.findAll({
+            attributes: ['account_id', 'account_number', 'account_descript'],
+            order: [['account_number', 'ASC']]
+        });
+        console.log('Controller: Pobrano konta:', accounts);
+        res.json(accounts);
+    } catch (error) {
+        console.error('Błąd podczas pobierania kont:', error);
+        res.status(500).json({ message: 'Wystąpił błąd serwera', error: error.message });
     }
 };
