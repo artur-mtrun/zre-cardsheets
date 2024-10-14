@@ -30,6 +30,7 @@ const machineRoutes = require('./routes/machine');
 const areaRoutes = require('./routes/area');
 const worksheetAPIRoutes = require('./routes/worksheetAPI');
 const accountRoutes = require('./routes/account');
+const companyRoutes = require('./routes/company');
 
 app.use(cors());
 app.use(morgan('dev'));
@@ -46,6 +47,7 @@ app.use(operatorRoutes);
 app.use(machineRoutes);
 app.use(areaRoutes);
 app.use(accountRoutes);
+app.use(companyRoutes);
 app.use('/api/worksheet', worksheetAPIRoutes);
 
 app.use(errorController.get404);
