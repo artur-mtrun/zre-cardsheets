@@ -1,471 +1,171 @@
-let employees = [];
+document.addEventListener('DOMContentLoaded', initializePage);
+
+let currentYear, currentMonth, currentEmployee;
 let events = [];
 
-// Globalna zmienna do przechowywania kont
-let globalAccounts = [];
-
-// Funkcja do pobrania kont, którą wywołamy na początku
-function fetchAccounts() {
-    console.log('Rozpoczęto pobieranie kont');
-    return fetch('/api/worksheet/accounts')
-        .then(response => {
-            console.log('Odpowiedź z /api/worksheet/accounts otrzymana:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(accounts => {
-            console.log('Pobrane konta:', accounts);
-            globalAccounts = accounts; // Upewnij się, że ta linia jest obecna
-            return accounts;
-        })
-        .catch(error => {
-            console.error('Błąd podczas pobierania kont:', error);
-            return [];
-        });
+function initializePage() {
+    initializeFilters();
+    fetchEmployees();
+    addEventListeners();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const monthFilter = document.getElementById('monthFilter');
-    const yearFilter = document.getElementById('yearFilter');
-    const employeeFilter = document.getElementById('employeeFilter');
-    const worksheetTable = document.getElementById('worksheetTable').getElementsByTagName('tbody')[0];
+function initializeFilters() {
+    const currentDate = new Date();
+    currentYear = currentDate.getFullYear();
+    currentMonth = currentDate.getMonth();
 
-    function populateYearFilter() {
-        const currentYear = new Date().getFullYear();
-        for (let year = currentYear - 5; year <= currentYear + 5; year++) {
-            const option = document.createElement('option');
-            option.value = year;
-            option.textContent = year;
-            yearFilter.appendChild(option);
-        }
+    const yearFilter = document.getElementById('year-filter');
+    const monthFilter = document.getElementById('month-filter');
+
+    // Inicjalizacja lat (bieżący rok +/- 2 lata)
+    for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearFilter.appendChild(option);
     }
+    yearFilter.value = currentYear;
 
-    function initializeFilters() {
-        const currentDate = new Date();
-        monthFilter.value = currentDate.getMonth();
-        yearFilter.value = currentDate.getFullYear();
-        
-        console.log('Filters initialized:', { month: monthFilter.value, year: yearFilter.value });
-    }
+    // Ustawiamy aktualny miesiąc
+    monthFilter.value = (currentMonth + 1).toString().padStart(2, '0');
+}
 
-    function updateCalendar() {
-        const selectedYear = parseInt(yearFilter.value);
-        const selectedMonth = parseInt(monthFilter.value);
-        const selectedEmployee = employeeFilter.value;
-        console.log('Updating calendar for:', { year: selectedYear, month: selectedMonth, employee: selectedEmployee });
-        fetchEvents(selectedYear, selectedMonth, selectedEmployee);
-    }
-
-    function fetchEmployees() {
-        fetch('/api/worksheet/employees')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                populateEmployeeFilter(data);
-                if (data.length > 0) {
-                    employeeFilter.value = data[0].enrollnumber;
-                    updateCalendar(); // Wywołaj updateCalendar po ustawieniu pierwszego pracownika
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching employees:', error);
-                alert('Wystąpił błąd podczas pobierania pracowników. Spróbuj ponownie później.'); // Dodany alert
-            });
-    }
-
-    function populateEmployeeFilter(employees) {
-        employeeFilter.innerHTML = ''; // Wyczyść istniejące opcje
-        employees.forEach(employee => {
-            const option = document.createElement('option');
-            option.value = employee.enrollnumber;
-            option.textContent = `${employee.nick} (${employee.enrollnumber})`;
-            employeeFilter.appendChild(option);
-        });
-    }
-
-    function fetchEvents(year, month, enrollnumber) {
-        console.log(`Fetching data for ${year}-${month + 1}, employee: ${enrollnumber}`);
-        let eventsUrl = `/api/worksheet/events?year=${year}&month=${month + 1}&enrollnumber=${enrollnumber}`;
-        let worksheetUrl = `/api/worksheet/data?year=${year}&month=${month + 1}&enrollnumber=${enrollnumber}`;
-        
-        Promise.all([
-            fetch(eventsUrl).then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            }),
-            fetch(worksheetUrl).then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-        ])
-        .then(([eventsData, worksheetData]) => {
-            console.log('Fetched events data:', eventsData);
-            console.log('Fetched worksheet data:', worksheetData);
-            generateCalendar(year, month, eventsData, worksheetData);
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            alert('Wystąpił błąd podczas pobierania danych. Spróbuj ponownie później.');
-        });
-    }
-
-    function generateCalendar(year, month, events, worksheetData) {
-        console.log('Generating calendar for:', year, month);
-        console.log('Events data:', events);
-        console.log('Worksheet data:', worksheetData);
-
-        worksheetTable.innerHTML = '';
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const dayNames = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
-
-        const headerRow = worksheetTable.insertRow();
-        ['Data', 'Dzień tygodnia', 'Nr czytnika', 'Wejście', 'Wyjście', 'Konto', 'Suma czasu'].forEach(text => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            headerRow.appendChild(th);
-        });
-
-        let totalMonthTime = 0;
-
-        for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(year, month, day);
-            const row = worksheetTable.insertRow();
-            row.classList.add('event-row');
-
-            // Data
-            const dateCell = row.insertCell();
-            dateCell.textContent = `${day} ${getMonthName(month)} ${year}`;
-
-            // Dzień tygodnia
-            const dayCell = row.insertCell();
-            dayCell.textContent = dayNames[date.getDay()];
-
-            // Nr czytnika
-            const machineNumberCell = row.insertCell();
-
-            // Wejście
-            const inCell = row.insertCell();
-            // Wyjście
-            const outCell = row.insertCell();
-            // Suma czasu
-            const sumCell = row.insertCell();
-
-            // Znajdź wydarzenia dla tego dnia
-            const dayEvents = events.filter(event => {
-                const eventDate = new Date(event.event_date);
-                return eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year;
-            });
-
-            let inTimes = [], outTimes = [], machineNumbers = [];
-
-            // Zbierz wszystkie wejścia i wyjścia
-            dayEvents.forEach(event => {
-                if (event.in_out === 2) { // Wejście
-                    inTimes.push(event.event_time);
-                    machineNumbers.push(event.machinenumber);
-                } else if (event.in_out === 3) { // Wyjście
-                    outTimes.push(event.event_time);
-                }
-            });
-
-            // Sortowanie godzin wejścia i wyjścia
-            inTimes.sort();
-            outTimes.sort();
-
-            console.log('In times for day:', day, 'Times:', inTimes);
-            console.log('Out times for day:', day, 'Times:', outTimes);
-
-            // Wypełnij komórki wejścia, wyjścia i nr czytnika
-            inCell.textContent = inTimes.join(', ');
-            outCell.textContent = outTimes.join(', ');
-            machineNumberCell.textContent = [...new Set(machineNumbers)].join(', ') || '0';
-
-            // Dodaj wiersz z danymi z worksheet
-            const worksheetRow = worksheetTable.insertRow();
-            const dayWorksheetData = worksheetData.find(ws => {
-                const wsDate = new Date(ws.event_date);
-                //wsDate.setHours(0, 0, 0, 0); // Ustaw godziny na zero
-                const isSameDate = wsDate.getDate() === day && wsDate.getMonth() === month && wsDate.getFullYear() === year;
-                console.log('Sprawdzanie daty:', wsDate, 'Dopasowanie:', isSameDate); // Dodany log
-                return isSameDate;
-            });
-
-            console.log('Processing day:', day);
-            console.log('Day worksheet data:', dayWorksheetData);
-
-            if (dayWorksheetData) {
-                worksheetRow.insertCell().textContent = 'Wpis';
-                
-                const changeButton = document.createElement('button');
-                changeButton.textContent = 'Zmień';
-                changeButton.classList.add('btn', 'btn-secondary', 'btn-sm');
-                changeButton.onclick = () => editWorksheetEntry(dayWorksheetData.worksheet_id, day, month, year);
-                const buttonCell = worksheetRow.insertCell();
-                buttonCell.appendChild(changeButton);
-                
-                worksheetRow.insertCell().textContent = dayWorksheetData.machinenumber || '0';
-                
-                // Wyświetlanie godzin wejścia i wyjścia jako zwykły tekst
-                worksheetRow.insertCell().textContent = dayWorksheetData.in_time || '';
-                worksheetRow.insertCell().textContent = dayWorksheetData.out_time || '';
-                
-                // Dodaj komórkę dla konta
-                const accountCell = worksheetRow.insertCell();
-                const accountSelect = document.createElement('select');
-                accountSelect.classList.add('form-select', 'form-select-sm');
-                populateAccountSelect(accountSelect, dayWorksheetData.account_id);
-                accountCell.appendChild(accountSelect);
-
-                // Obliczanie i wyświetlanie sumy czasu
-                const worksheetSumCell = worksheetRow.insertCell();
-                if (dayWorksheetData.in_time && dayWorksheetData.out_time) {
-                    const timeDiff = calculateTimeDifference(dayWorksheetData.in_time, dayWorksheetData.out_time);
-                    const hours = Math.floor(timeDiff / 60);
-                    const minutes = timeDiff % 60;
-                    worksheetSumCell.textContent = `${hours}h ${minutes}m`;
-                }
-
-                // Kolorowanie wiersza
-                const machineNumber = parseInt(dayWorksheetData.machinenumber);
-                if (machineNumber === 0) {
-                    worksheetRow.classList.add('worksheet-row-yellow');
-                } else if (machineNumber > 0) {
-                    worksheetRow.classList.add('worksheet-row-green');
-                }
-            } else {
-                // Dla dni bez wpisu, nie dodajemy pól do edycji godzin
-                worksheetRow.insertCell().textContent = 'Brak wpisu';
-                const addButton = document.createElement('button');
-                addButton.textContent = 'Dodaj';
-                addButton.classList.add('btn', 'btn-primary', 'btn-sm');
-                addButton.onclick = () => addWorksheetEntry(day, '0');
-                const buttonCell = worksheetRow.insertCell();
-                buttonCell.appendChild(addButton);
-                worksheetRow.insertCell().textContent = '0';
-                worksheetRow.insertCell().textContent = ''; // Puste pole dla wejścia
-                worksheetRow.insertCell().textContent = ''; // Puste pole dla wyjścia
-                
-                // Dodaj puste pole wyboru konta
-                const accountCell = worksheetRow.insertCell();
-                const accountSelect = document.createElement('select');
-                accountSelect.classList.add('form-select', 'form-select-sm');
-                populateAccountSelect(accountSelect);
-                accountCell.appendChild(accountSelect);
-
-                worksheetRow.insertCell(); // Puste pole dla sumy czasu
-            }
-
-            console.log('Added class:', worksheetRow.className);
-            console.log('Computed style:', window.getComputedStyle(worksheetRow).backgroundColor);
-
-            // Stylizacja wiersza worksheet
-            Array.from(worksheetRow.cells).forEach(cell => {
-                cell.style.fontStyle = 'italic';
-            });
-        }
-
-        // Dodaj wiersz z sumą czasu dla całego miesiąca
-        const totalRow = worksheetTable.insertRow();
-        totalRow.insertCell().textContent = 'Suma dla miesiąca';
-        totalRow.insertCell(); // Pusty dla dnia tygodnia
-        totalRow.insertCell(); // Pusty dla nr czytnika
-        totalRow.insertCell(); // Pusty dla wejścia
-        totalRow.insertCell(); // Pusty dla wyjścia
-        totalRow.insertCell(); // Pusty dla konta
-        const totalMonthCell = totalRow.insertCell();
-        const totalHours = Math.floor(totalMonthTime / 60);
-        const totalMinutes = totalMonthTime % 60;
-        totalMonthCell.textContent = `${totalHours}h ${totalMinutes}m`;
-        totalMonthCell.style.fontWeight = 'bold';
-    }
-
-    function calculateTimeDifference(startTime, endTime) {
-        const [startHours, startMinutes] = startTime.split(':').map(Number);
-        const [endHours, endMinutes] = endTime.split(':').map(Number);
-        
-        let diffMinutes = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
-        
-        // Jeśli różnica jest ujemna, zakładamy, że wyjście było następnego dnia
-        if (diffMinutes < 0) {
-            diffMinutes += 24 * 60;
-        }
-        
-        return diffMinutes;
-    }
-
-    // Globalne zmienne
-    let selectedYear, selectedMonth, selectedEnrollNumber;
-
-    // Funkcja do uzyskiwania nazwy miesiąca
-    function getMonthName(monthIndex) {
-        const monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
-        return monthNames[monthIndex];
-    }
-
-    // Funkcja do aktualizacji wybranych wartości
-    function updateSelectedValues() {
-        selectedYear = document.getElementById('yearFilter').value;
-        selectedMonth = document.getElementById('monthFilter').value;
-        selectedEnrollNumber = document.getElementById('employeeFilter').value;
-    }
-
-    function addWorksheetEntry(day, machineNumber) {
-        updateSelectedValues();
-        const selectedMonthName = getMonthName(parseInt(selectedMonth));
-
-        const rows = worksheetTable.rows;
-        for (let i = 0; i < rows.length; i++) {
-            if (rows[i].cells[0].textContent.startsWith(`${day} ${selectedMonthName}`)) {
-                const worksheetRow = rows[i + 1];
-                const accountSelect = worksheetRow.cells[5].querySelector('select');
-                
-                console.log(`Dodawanie wpisu dla ${day}-${parseInt(selectedMonth) + 1}-${selectedYear}, pracownik: ${selectedEnrollNumber}, czytnik: ${machineNumber}`);
-                
-                fetch('/api/worksheet/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        day: day,
-                        month: parseInt(selectedMonth) + 1,
-                        year: selectedYear,
-                        enrollnumber: selectedEnrollNumber,
-                        machinenumber: machineNumber || '0',
-                        account_id: accountSelect.value
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => { throw err; });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Wpis dodany:', data);
-                    updateCalendar();
-                })
-                .catch((error) => {
-                    console.error('Błąd podczas dodawania wpisu:', error);
-                    alert(`Wystąpił błąd podczas dodawania wpisu: ${error.message || JSON.stringify(error)}`);
-                });
-
-                break;
-            }
-        }
-    }
-
-    function editWorksheetEntry(id, day, month, year) {
-        console.log(`Próba edycji wpisu o ID: ${id}`);
-        if (!id) {
-            console.error('Brak ID wpisu do edycji');
-            alert('Nie można edytować wpisu: brak identyfikatora');
-            return;
-        }
-
-        updateSelectedValues();
-        const selectedMonthName = getMonthName(parseInt(selectedMonth));
-
-        const rows = worksheetTable.rows;
-        for (let i = 0; i < rows.length; i++) {
-            if (rows[i].cells[0].textContent.startsWith(`${day} ${selectedMonthName}`)) {
-                const worksheetRow = rows[i + 1];
-                const machineNumber = worksheetRow.cells[2].textContent;
-                const inTime = worksheetRow.cells[3].textContent;
-                const outTime = worksheetRow.cells[4].textContent;
-                const accountSelect = worksheetRow.cells[5].querySelector('select');
-                
-                console.log(`Edycja wpisu ${id} dla ${day}-${parseInt(selectedMonth) + 1}-${selectedYear}, pracownik: ${selectedEnrollNumber}, czytnik: ${machineNumber}: ${inTime} - ${outTime}`);
-                
-                fetch(`api/worksheet/edit-entry/${id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        day: day,
-                        month: parseInt(selectedMonth) + 1,
-                        year: selectedYear,
-                        enrollnumber: selectedEnrollNumber,
-                        machinenumber: machineNumber,
-                        account_id: accountSelect.value
-                    })
-                })
-                .then(response => {
-                    console.log('Status odpowiedzi:', response.status);
-                    console.log('Typ zawartości:', response.headers.get('content-type'));
-                    if (!response.ok) {
-                        return response.text().then(text => {
-                            console.error('Odpowiedź serwera:', text);
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Wpis zaktualizowany:', data);
-                    updateCalendar();
-                })
-                .catch((error) => {
-                    console.error('Błąd podczas edycji wpisu:', error);
-                    alert(`Wystąpił błąd podczas edycji wpisu: ${error.message}`);
-                });
-
-                break;
-            }
-        }
-    }
-
-    // Zmodyfikowana funkcja populateAccountSelect
-    function populateAccountSelect(selectElement, selectedAccountId) {
-        console.log('Rozpoczęto wypełnianie listy kont');
-        selectElement.innerHTML = ''; // Wyczyść istniejące opcje
-        
-        if (globalAccounts.length === 0) {
-            console.warn('Lista kont jest pusta');
-            const errorOption = document.createElement('option');
-            errorOption.textContent = 'Brak dostępnych kont';
-            selectElement.appendChild(errorOption);
-        } else {
-            // Dodaj domyślną opcję
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = 'Wybierz konto';
-            selectElement.appendChild(defaultOption);
-
-            globalAccounts.forEach(account => {
+function fetchEmployees() {
+    fetch('/api/employees')
+        .then(response => response.json())
+        .then(employees => {
+            const employeeFilter = document.getElementById('employee-filter');
+            employees.forEach(employee => {
                 const option = document.createElement('option');
-                option.value = account.account_id;
-                option.textContent = `${account.account_number} - ${account.account_descript}`;
-                selectElement.appendChild(option);
+                option.value = employee.enrollnumber;
+                option.textContent = employee.nick;
+                employeeFilter.appendChild(option);
             });
-        }
-        console.log('Zakończono wypełnianie listy kont. Liczba opcji:', selectElement.options.length);
+            if (employees.length > 0) {
+                currentEmployee = employees[0].enrollnumber;
+                employeeFilter.value = currentEmployee;
+            }
+            generateCalendar();
+        })
+        .catch(error => console.error('Error fetching employees:', error));
+}
 
-        // Ustaw wartość konta, jeśli istnieje
-        if (selectedAccountId) {
-            selectElement.value = selectedAccountId;
+function addEventListeners() {
+    document.getElementById('year-filter').addEventListener('change', generateCalendar);
+    document.getElementById('month-filter').addEventListener('change', generateCalendar);
+    document.getElementById('employee-filter').addEventListener('change', generateCalendar);
+}
+
+function generateCalendar() {
+    const year = parseInt(document.getElementById('year-filter').value);
+    const month = parseInt(document.getElementById('month-filter').value) - 1;
+    const employee = document.getElementById('employee-filter').value;
+
+    fetchEvents(year, month, employee);
+}
+
+function fetchEvents(year, month, employee) {
+    console.log(`Pobieranie wydarzeń dla pracownika: ${employee}, rok: ${year}, miesiąc: ${month + 1}`);
+    fetch(`/api/worksheet/events?year=${year}&month=${month + 1}&enrollnumber=${employee}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Otrzymane dane:`, data);
+            events = data;
+            updateCalendar(year, month);
+        })
+        .catch(error => console.error('Error fetching events:', error));
+}
+
+function updateCalendar(year, month) {
+    console.log('Otrzymane wydarzenia:', events);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const calendarBody = document.querySelector('#calendar-table tbody');
+    calendarBody.innerHTML = '';
+
+    const dayNames = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+
+    // Sortujemy wydarzenia chronologicznie
+    events.sort((a, b) => new Date(a.event_date + 'T' + a.event_time) - new Date(b.event_date + 'T' + b.event_time));
+
+    let lastInEvent = null;
+    let usedOutEvents = new Set();
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const row = document.createElement('tr');
+
+        // Data
+        const dateCell = document.createElement('td');
+        dateCell.textContent = `${day.toString().padStart(2, '0')}.${(month + 1).toString().padStart(2, '0')}.${year}`;
+        row.appendChild(dateCell);
+
+        // Dzień tygodnia
+        const dayNameCell = document.createElement('td');
+        dayNameCell.textContent = dayNames[date.getDay()];
+        row.appendChild(dayNameCell);
+
+        // Numer czytnika (machinenumber)
+        const machineNumberCell = document.createElement('td');
+        row.appendChild(machineNumberCell);
+
+        // Wejście i wyjście
+        const inTimeCell = document.createElement('td');
+        const outTimeCell = document.createElement('td');
+
+        const dayEvents = events.filter(event => 
+            new Date(event.event_date).getDate() === day &&
+            new Date(event.event_date).getMonth() === month &&
+            new Date(event.event_date).getFullYear() === year
+        );
+
+        console.log(`Wydarzenia dla ${day}.${month + 1}.${year}:`, dayEvents);
+
+        if (dayEvents.length > 0 || lastInEvent) {
+            let inEvent = lastInEvent || dayEvents.find(event => event.in_out === 2);
+            let outEvent = dayEvents.find(event => event.in_out === 3 && !usedOutEvents.has(event.event_id));
+
+            if (inEvent && !outEvent) {
+                const nextDayEvents = events.filter(event => 
+                    new Date(event.event_date).getDate() === day + 1 &&
+                    new Date(event.event_date).getMonth() === month &&
+                    new Date(event.event_date).getFullYear() === year
+                );
+                outEvent = nextDayEvents.find(event => event.in_out === 3 && !usedOutEvents.has(event.event_id));
+            }
+
+            console.log('Wydarzenie wejścia:', inEvent);
+            console.log('Wydarzenie wyjścia:', outEvent);
+
+            inTimeCell.textContent = inEvent ? formatTime(inEvent.event_time) : '';
+            if (outEvent) {
+                outTimeCell.textContent = formatTime(outEvent.event_time);
+                usedOutEvents.add(outEvent.event_id);
+            }
+
+            // Ustawianie numeru czytnika
+            if (inEvent && inEvent.machinenumber === 0) {
+                machineNumberCell.textContent = '0';
+            } else if (outEvent) {
+                machineNumberCell.textContent = outEvent.machinenumber;
+            } else if (inEvent) {
+                machineNumberCell.textContent = inEvent.machinenumber;
+            }
+
+            if (inEvent && !outEvent) {
+                lastInEvent = inEvent;
+            } else {
+                lastInEvent = null;
+            }
         }
+
+        row.appendChild(inTimeCell);
+        row.appendChild(outTimeCell);
+
+        calendarBody.appendChild(row);
     }
+}
 
-    // Dodaj wywołanie fetchAccounts przed innymi operacjami
-    fetchAccounts().then(() => {
-        populateYearFilter();
-        initializeFilters();
-        fetchEmployees();
-    });
-
-    monthFilter.addEventListener('change', updateCalendar);
-    yearFilter.addEventListener('change', updateCalendar);
-    employeeFilter.addEventListener('change', updateCalendar);
-});
+function formatTime(timeString) {
+    console.log('Oryginalny czas:', timeString);
+    return timeString.slice(0, 5);  // Zwracamy tylko godziny i minuty (HH:MM)
+}

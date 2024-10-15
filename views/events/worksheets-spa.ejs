@@ -1,59 +1,74 @@
 <%- include('../includes/head.ejs') %>
-<!-- Umieść ten link na końcu sekcji head -->
-<link rel="stylesheet" href="/css/main.css">
+<style>
+    #calendar-container {
+        height: auto;
+        overflow-y: visible;
+    }
+    #calendar-table {
+        width: 100%;
+    }
+    #calendar-table th, #calendar-table td {
+        padding: 5px;
+        font-size: 0.9em;
+    }
+</style>
 </head>
+
 <body>
     <%- include('../includes/navigation.ejs') %>
 
-    <main class="container mt-4">
-        <h1 class="mb-4 text-primary">Karta Pracy</h1>
+    <div class="container mt-4">
+        <h1>Arkusz roboczy</h1>
         
-        <div class="row mb-3">
+        <div class="row mb-4">
             <div class="col-md-4">
-                <label for="monthFilter" class="form-label">Miesiąc:</label>
-                <select id="monthFilter" class="form-select">
-                    <option value="0">Styczeń</option>
-                    <option value="1">Luty</option>
-                    <option value="2">Marzec</option>
-                    <option value="3">Kwiecień</option>
-                    <option value="4">Maj</option>
-                    <option value="5">Czerwiec</option>
-                    <option value="6">Lipiec</option>
-                    <option value="7">Sierpień</option>
-                    <option value="8">Wrzesień</option>
-                    <option value="9">Październik</option>
-                    <option value="10">Listopad</option>
-                    <option value="11">Grudzień</option>
+                <label for="year-filter" class="form-label">Rok:</label>
+                <select id="year-filter" class="form-select">
+                    <!-- Options will be populated by JavaScript -->
                 </select>
             </div>
             <div class="col-md-4">
-                <label for="yearFilter" class="form-label">Rok:</label>
-                <select id="yearFilter" class="form-select">
-                    <!-- Opcje roku będą dodane dynamicznie przez JavaScript -->
+                <label for="month-filter" class="form-label">Miesiąc:</label>
+                <select id="month-filter" class="form-select">
+                    <option value="01">Styczeń</option>
+                    <option value="02">Luty</option>
+                    <option value="03">Marzec</option>
+                    <option value="04">Kwiecień</option>
+                    <option value="05">Maj</option>
+                    <option value="06">Czerwiec</option>
+                    <option value="07">Lipiec</option>
+                    <option value="08">Sierpień</option>
+                    <option value="09">Wrzesień</option>
+                    <option value="10">Październik</option>
+                    <option value="11">Listopad</option>
+                    <option value="12">Grudzień</option>
                 </select>
             </div>
             <div class="col-md-4">
-                <label for="employeeFilter" class="form-label">Pracownik:</label>
-                <select id="employeeFilter" class="form-select">
-                    <option value="">Wszyscy pracownicy</option>
-                    <!-- Opcje pracowników będą dodane dynamicznie -->
+                <label for="employee-filter" class="form-label">Pracownik:</label>
+                <select id="employee-filter" class="form-select">
+                    <!-- Options will be populated by JavaScript -->
                 </select>
             </div>
         </div>
 
-        <table id="worksheetTable" class="table table-bordered">
-            <thead>
-                <tr>
+        <div id="calendar-container">
+            <table id="calendar-table" class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Dzień tygodnia</th>
+                        <th>Nr czytnika</th>
+                        <th>Wejście</th>
+                        <th>Wyjście</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Calendar rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Dane będą wstawiane dynamicznie przez JavaScript -->
-            </tbody>
-        </table>
-    </main>
-
-    <%- include('../includes/end.ejs') %>
     <script src="/js/worksheet-spa.js"></script>
-</body>
-</html>
+<%- include('../includes/end.ejs') %>

@@ -3,6 +3,7 @@ const { Employee } = require('../models/employee');
 const { Event } = require('../models/event');
 const { Op } = require('sequelize');
 const { Account } = require('../models/account');
+const { getEventsByMonthAndEmployee } = require('./eventsAPI');
 
 
 exports.getWorksheets = async (req, res) => {
@@ -37,47 +38,11 @@ exports.getAllEmployees = async (req, res) => {
     }
 };
 
-exports.getEvents = async (req, res) => {
-    console.log('Otrzymano żądanie getEvents z parametrami:', req.query);
-    try {
-        const { year, month, enrollnumber } = req.query;
-        
-        if (!year || !month) {
-            return res.status(400).json({ message: 'Brak wymaganych parametrów year i month' });
-        }
-
-        const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-        const endDate = new Date(parseInt(year), parseInt(month), 0);
-
-        console.log('Zakres dat:', { startDate, endDate });
-
-        let whereClause = {
-            event_date: {
-                [Op.between]: [startDate, endDate]
-            }
-        };
-
-        if (enrollnumber) {
-            whereClause.enrollnumber = enrollnumber;
-        }
-
-        console.log('Warunek wyszukiwania:', whereClause);
-
-        const events = await Event.findAll({
-            where: whereClause,
-            order: [['event_date', 'ASC'], ['event_time', 'ASC']]
-        });
-
-        console.log('Znalezione wydarzenia:', events);
-        res.json(events);
-    } catch (error) {
-        console.error('Error fetching events:', error);
-        res.status(500).json({ message: 'Internal server error', error: error.message });
-    }
-};
+exports.getEvents = getEventsByMonthAndEmployee;
 
 exports.getWorksheetData = async (req, res) => {
     try {
+        console.log('Dupa dupa dupa Otrzymano żądanie getWorksheetData z parametrami:', req.query);
         const { year, month, enrollnumber } = req.query;
         console.log('Pobieranie danych arkusza roboczego dla:', { year, month, enrollnumber });
         const startDate = new Date(year, month - 1, 1);
