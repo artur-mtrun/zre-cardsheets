@@ -88,7 +88,7 @@ function updateCalendar(year, month) {
     events.sort((a, b) => new Date(a.event_date + 'T' + a.event_time) - new Date(b.event_date + 'T' + b.event_time));
 
     let lastInEvent = null;
-    let usedOutEvents = new Set();
+    let usedEventIds = new Set();
 
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
@@ -115,47 +115,47 @@ function updateCalendar(year, month) {
         const dayEvents = events.filter(event => 
             new Date(event.event_date).getDate() === day &&
             new Date(event.event_date).getMonth() === month &&
-            new Date(event.event_date).getFullYear() === year
+            new Date(event.event_date).getFullYear() === year &&
+            !usedEventIds.has(event.event_id)
         );
 
         console.log(`Wydarzenia dla ${day}.${month + 1}.${year}:`, dayEvents);
 
-        if (dayEvents.length > 0 || lastInEvent) {
-            let inEvent = lastInEvent || dayEvents.find(event => event.in_out === 2);
-            let outEvent = dayEvents.find(event => event.in_out === 3 && !usedOutEvents.has(event.event_id));
+        let inEvent = dayEvents.find(event => event.in_out === 2) || (lastInEvent && !usedEventIds.has(lastInEvent.event_id) ? lastInEvent : null);
+        let outEvent = dayEvents.find(event => event.in_out === 3 || event.in_out === 4);
 
-            if (inEvent && !outEvent) {
-                const nextDayEvents = events.filter(event => 
-                    new Date(event.event_date).getDate() === day + 1 &&
-                    new Date(event.event_date).getMonth() === month &&
-                    new Date(event.event_date).getFullYear() === year
-                );
-                outEvent = nextDayEvents.find(event => event.in_out === 3 && !usedOutEvents.has(event.event_id));
-            }
+        if (inEvent && !outEvent) {
+            const nextDayEvents = events.filter(event => 
+                new Date(event.event_date).getDate() === day + 1 &&
+                new Date(event.event_date).getMonth() === month &&
+                new Date(event.event_date).getFullYear() === year &&
+                !usedEventIds.has(event.event_id) &&
+                (event.in_out === 3 || event.in_out === 4)
+            );
+            outEvent = nextDayEvents[0];
+        }
 
-            console.log('Wydarzenie wejścia:', inEvent);
-            console.log('Wydarzenie wyjścia:', outEvent);
+        console.log('Wydarzenie wejścia:', inEvent);
+        console.log('Wydarzenie wyjścia:', outEvent);
 
-            inTimeCell.textContent = inEvent ? formatTime(inEvent.event_time) : '';
-            if (outEvent) {
-                outTimeCell.textContent = formatTime(outEvent.event_time);
-                usedOutEvents.add(outEvent.event_id);
-            }
+        if (inEvent && !usedEventIds.has(inEvent.event_id)) {
+            inTimeCell.textContent = formatTime(inEvent.event_time);
+            usedEventIds.add(inEvent.event_id);
+            machineNumberCell.textContent = inEvent.machinenumber;
+        }
 
-            // Ustawianie numeru czytnika
-            if (inEvent && inEvent.machinenumber === 0) {
-                machineNumberCell.textContent = '0';
-            } else if (outEvent) {
+        if (outEvent && !usedEventIds.has(outEvent.event_id)) {
+            outTimeCell.textContent = formatTime(outEvent.event_time);
+            usedEventIds.add(outEvent.event_id);
+            if (!inEvent) {
                 machineNumberCell.textContent = outEvent.machinenumber;
-            } else if (inEvent) {
-                machineNumberCell.textContent = inEvent.machinenumber;
             }
+        }
 
-            if (inEvent && !outEvent) {
-                lastInEvent = inEvent;
-            } else {
-                lastInEvent = null;
-            }
+        if (inEvent && !outEvent) {
+            lastInEvent = inEvent;
+        } else {
+            lastInEvent = null;
         }
 
         row.appendChild(inTimeCell);
