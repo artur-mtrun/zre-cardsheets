@@ -112,6 +112,9 @@ function updateCalendar(year, month) {
         const inTimeCell = document.createElement('td');
         const outTimeCell = document.createElement('td');
 
+        // Nowa komórka dla czasu pracy
+        const workTimeCell = document.createElement('td');
+
         const dayEvents = events.filter(event => 
             new Date(event.event_date).getDate() === day &&
             new Date(event.event_date).getMonth() === month &&
@@ -152,6 +155,12 @@ function updateCalendar(year, month) {
             }
         }
 
+        // Obliczanie czasu pracy
+        if (inEvent && outEvent) {
+            const workTime = calculateWorkTime(inEvent, outEvent);
+            workTimeCell.textContent = formatWorkTime(workTime);
+        }
+
         if (inEvent && !outEvent) {
             lastInEvent = inEvent;
         } else {
@@ -160,6 +169,7 @@ function updateCalendar(year, month) {
 
         row.appendChild(inTimeCell);
         row.appendChild(outTimeCell);
+        row.appendChild(workTimeCell);
 
         calendarBody.appendChild(row);
     }
@@ -168,4 +178,36 @@ function updateCalendar(year, month) {
 function formatTime(timeString) {
     console.log('Oryginalny czas:', timeString);
     return timeString.slice(0, 5);  // Zwracamy tylko godziny i minuty (HH:MM)
+}
+
+function formatWorkTime(timeInMinutes) {
+    const hours = Math.floor(timeInMinutes / 60);
+    const minutes = Math.floor(timeInMinutes % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
+
+function calculateWorkTime(inEvent, outEvent) {
+    const inTime = parseDateTime(inEvent.event_date, inEvent.event_time);
+    const outTime = parseDateTime(outEvent.event_date, outEvent.event_time);
+    
+    if (inTime && outTime) {
+        let diffInMinutes = (outTime - inTime) / (1000 * 60);
+        
+        // Jeśli czas wyjścia jest wcześniejszy niż czas wejścia, zakładamy, że wyjście było następnego dnia
+        if (diffInMinutes < 0) {
+            diffInMinutes += 24 * 60; // dodajemy 24 godziny w minutach
+        }
+        
+        return diffInMinutes;
+    }
+    return 0;
+}
+
+function parseDateTime(dateString, timeString) {
+    // Zakładamy, że dateString jest w formacie 'YYYY-MM-DDT00:00:00.000Z'
+    const [datePart] = dateString.split('T');
+    const [year, month, day] = datePart.split('-');
+    const [hours, minutes, seconds] = timeString.split(':');
+    
+    return new Date(year, month - 1, day, hours, minutes, seconds);
 }
