@@ -1,7 +1,9 @@
+let yearFilter, monthFilter, employeeFilter;
+
 document.addEventListener('DOMContentLoaded', function() {
-    const monthFilter = document.getElementById('month-filter');
-    const yearFilter = document.getElementById('year-filter');
-    const employeeFilter = document.getElementById('employee-filter');
+    yearFilter = document.getElementById('year-filter');
+    monthFilter = document.getElementById('month-filter');
+    employeeFilter = document.getElementById('employee-filter');
     const applyFiltersButton = document.getElementById('apply-filters');
     const eventEnrollnumber = document.getElementById('event-enrollnumber');
     const eventForm = document.getElementById('event-form');
@@ -117,7 +119,7 @@ function renderEventsTable(events) {
     tableBody.innerHTML = '';
 
     if (events.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8">Brak danych do wyświetlenia</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="9">Brak danych do wyświetlenia</td></tr>';
         return;
     }
 
@@ -149,6 +151,9 @@ function renderEventsTable(events) {
             <td>${new Date(event.event_date).toLocaleDateString()}</td>
             <td>${event.event_time}</td>
             <td>${workTime}</td>
+            <td>
+                <button class="btn btn-danger btn-sm delete-event" data-event-id="${event.event_id}">Usuń zdarzenie</button>
+            </td>
         `;
         tableBody.appendChild(row);
     });
@@ -161,10 +166,45 @@ function renderEventsTable(events) {
     console.log('Sformatowany całkowity czas:', formattedTotalTime);
     
     totalRow.innerHTML = `
-        <td colspan="7" style="text-align: right;"><strong>Suma godzin:</strong></td>
+        <td colspan="8" style="text-align: right;"><strong>Suma godzin:</strong></td>
         <td><strong>${formattedTotalTime}</strong></td>
     `;
     tableBody.appendChild(totalRow);
+
+    // Dodaj nasłuchiwacze zdarzeń dla przycisków usuwania
+    addDeleteEventListeners();
+}
+
+function addDeleteEventListeners() {
+    console.log('Adding delete event listeners');
+    const deleteButtons = document.querySelectorAll('.delete-event');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const eventId = this.getAttribute('data-event-id');
+            if (confirm('Czy na pewno chcesz usunąć to zdarzenie?')) {
+                deleteEvent(eventId);
+            }
+        });
+    });
+}
+
+function deleteEvent(eventId) {
+    console.log('Deleting event with ID:', eventId);
+    fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Zdarzenie usunięte:', data);
+        // Odśwież listę zdarzeń
+        fetchFilteredEvents();
+    })
+    .catch(error => console.error('Błąd podczas usuwania zdarzenia:', error));
 }
 
 function calculateWorkTime(event, previousEvent) {
@@ -195,7 +235,11 @@ function calculateWorkTime(event, previousEvent) {
     return ''; // Zwracamy pusty string zamiast '---'
 }
 
-function fetchFilteredEvents(year, month, enrollnumber) {
+function fetchFilteredEvents() {
+    const year = yearFilter ? yearFilter.value : new Date().getFullYear();
+    const month = monthFilter ? monthFilter.value : (new Date().getMonth() + 1).toString().padStart(2, '0');
+    const enrollnumber = employeeFilter ? employeeFilter.value : '';
+
     console.log('Fetching events:', year, month, enrollnumber);
     fetch(`/api/events/filter?year=${year}&month=${month}&enrollnumber=${enrollnumber}`)
         .then(response => response.json())

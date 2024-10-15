@@ -67,18 +67,18 @@ exports.updateEvent = async (req, res, next) => {
 
 exports.deleteEvent = async (req, res, next) => {
   if (!req.session.isLoggedIn) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Unauthorized' });
   }
   try {
-      const eventId = req.params.id;
-      const event = await Event.findByPk(eventId);
-      if (!event) {
-          return res.status(404).json({ message: 'Event not found' });
-      }
-      await event.destroy();
-      res.status(200).json({ message: 'Event deleted successfully' });
+    const eventId = req.params.id;
+    const event = await Event.findByPk(eventId);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    await event.destroy();
+    res.status(200).json({ message: 'Event deleted successfully' });
   } catch (err) {
-      next(err);
+    next(err);
   }
 };
 
