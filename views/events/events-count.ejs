@@ -51,15 +51,15 @@
             </div>
         </div>
 
-        <% if (isAdmin) { %>
+        
         <form id="event-form" class="row g-3 mb-4 bg-light p-3 rounded">
             <div class="col-md-2">
                 <label for="event-machinenumber" class="form-label">Czytnik</label>
-                <input type="number" class="form-control" id="event-machinenumber" name="machinenumber" required>
+                <input type="number" class="form-control" id="event-machinenumber" name="machinenumber" value="0" readonly>
             </div>
             <div class="col-md-2">
                 <label for="event-enrollnumber" class="form-label">Nr pracownika</label>
-                <input type="number" class="form-control" id="event-enrollnumber" name="enrollnumber" required>
+                <input type="number" class="form-control" id="event-enrollnumber" name="enrollnumber" readonly>
             </div>
             <div class="col-md-2">
                 <label for="event-in-out" class="form-label">We/Wy</label>
@@ -81,7 +81,7 @@
                 <button type="submit" class="btn btn-success w-100">Dodaj zdarzenie</button>
             </div>
         </form>
-        <% } %>
+        
 
         <div class="table-responsive">
             <table class="table table-striped table-hover">

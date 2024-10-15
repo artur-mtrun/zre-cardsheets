@@ -3,6 +3,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearFilter = document.getElementById('year-filter');
     const employeeFilter = document.getElementById('employee-filter');
     const applyFiltersButton = document.getElementById('apply-filters');
+    const eventEnrollnumber = document.getElementById('event-enrollnumber');
+    const eventForm = document.getElementById('event-form');
+    const eventMachinenumber = document.getElementById('event-machinenumber');
+    const eventInOut = document.getElementById('event-in-out');
+    const eventDate = document.getElementById('event-date');
+    const eventTime = document.getElementById('event-time');
 
     // Inicjalizacja filtra roku
     function initializeYearFilter() {
@@ -34,8 +40,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (employees.length > 0) {
                     employeeFilter.value = employees[0].enrollnumber;
                 }
+                
+                // Aktualizuj numer pracownika w formularzu
+                initializeEmployeeNumber();
             })
             .catch(error => console.error('Error fetching employees:', error));
+    }
+
+    // Aktualizacja numeru pracownika w formularzu przy zmianie filtra
+    employeeFilter.addEventListener('change', function() {
+        eventEnrollnumber.value = this.value;
+    });
+
+    // Inicjalizacja numeru pracownika w formularzu
+    function initializeEmployeeNumber() {
+        if (employeeFilter.options.length > 0) {
+            eventEnrollnumber.value = employeeFilter.value;
+        }
     }
 
     // Obsługa przycisku "Zastosuj filtry"
@@ -51,6 +72,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         fetchFilteredEvents(selectedYear, selectedMonth, selectedEmployee);
+    });
+
+    // Obsługa formularza dodawania zdarzenia
+    eventForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const newEvent = {
+            machinenumber: eventMachinenumber.value,
+            enrollnumber: eventEnrollnumber.value,
+            in_out: eventInOut.value,
+            event_date: eventDate.value,
+            event_time: eventTime.value
+        };
+
+        fetch('/api/events', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newEvent)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Zdarzenie dodane:', data);
+            // Odśwież listę zdarzeń
+            fetchFilteredEvents(yearFilter.value, monthFilter.value, employeeFilter.value);
+            // Wyczyść formularz
+            eventForm.reset();
+            // Przywróć domyślne wartości dla czytnika i numeru pracownika
+            eventMachinenumber.value = '0';
+            eventEnrollnumber.value = employeeFilter.value;
+        })
+        .catch(error => console.error('Błąd podczas dodawania zdarzenia:', error));
     });
 
     // Inicjalizacja
