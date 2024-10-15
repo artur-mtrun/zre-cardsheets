@@ -215,14 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 worksheetRow.insertCell().textContent = dayWorksheetData.machinenumber || '0';
                 
-                // Zmiana na elementy span zamiast input dla wejścia i wyjścia
-                const inTimeSpan = document.createElement('span');
-                inTimeSpan.textContent = dayWorksheetData.in_time || '';
-                worksheetRow.insertCell().appendChild(inTimeSpan);
-                
-                const outTimeSpan = document.createElement('span');
-                outTimeSpan.textContent = dayWorksheetData.out_time || '';
-                worksheetRow.insertCell().appendChild(outTimeSpan);
+                // Wyświetlanie godzin wejścia i wyjścia jako zwykły tekst
+                worksheetRow.insertCell().textContent = dayWorksheetData.in_time || '';
+                worksheetRow.insertCell().textContent = dayWorksheetData.out_time || '';
                 
                 // Dodaj komórkę dla konta
                 const accountCell = worksheetRow.insertCell();
@@ -231,16 +226,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 populateAccountSelect(accountSelect, dayWorksheetData.account_id);
                 accountCell.appendChild(accountSelect);
 
-                // Komórka sumy czasu
+                // Obliczanie i wyświetlanie sumy czasu
                 const worksheetSumCell = worksheetRow.insertCell();
-
-                // Oblicz sumę czasu dla wpisu worksheet
                 if (dayWorksheetData.in_time && dayWorksheetData.out_time) {
                     const timeDiff = calculateTimeDifference(dayWorksheetData.in_time, dayWorksheetData.out_time);
                     const hours = Math.floor(timeDiff / 60);
                     const minutes = timeDiff % 60;
                     worksheetSumCell.textContent = `${hours}h ${minutes}m`;
-                    totalMonthTime += timeDiff;
                 }
 
                 // Kolorowanie wiersza
@@ -250,43 +242,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (machineNumber > 0) {
                     worksheetRow.classList.add('worksheet-row-green');
                 }
-
-                console.log('Worksheet data:', dayWorksheetData);
-                console.log('Machine number:', dayWorksheetData ? dayWorksheetData.machinenumber : 'No data');
-                console.log('Applied class:', worksheetRow.className);
             } else {
+                // Dla dni bez wpisu, nie dodajemy pól do edycji godzin
                 worksheetRow.insertCell().textContent = 'Brak wpisu';
-                
                 const addButton = document.createElement('button');
                 addButton.textContent = 'Dodaj';
                 addButton.classList.add('btn', 'btn-primary', 'btn-sm');
-                addButton.onclick = () => addWorksheetEntry(day, machineNumbers[0] || '0');
+                addButton.onclick = () => addWorksheetEntry(day, '0');
                 const buttonCell = worksheetRow.insertCell();
                 buttonCell.appendChild(addButton);
+                worksheetRow.insertCell().textContent = '0';
+                worksheetRow.insertCell().textContent = ''; // Puste pole dla wejścia
+                worksheetRow.insertCell().textContent = ''; // Puste pole dla wyjścia
                 
-                worksheetRow.insertCell().textContent = machineNumbers[0] || '0';
-                
-                const inTimeInput = document.createElement('input');
-                inTimeInput.type = 'time';
-                inTimeInput.value = inTimes[0] || '';
-                worksheetRow.insertCell().appendChild(inTimeInput);
-                
-                const outTimeInput = document.createElement('input');
-                outTimeInput.type = 'time';
-                outTimeInput.value = outTimes[outTimes.length - 1] || '';
-                worksheetRow.insertCell().appendChild(outTimeInput);
-
-                // Dodaj pole wyboru konta
+                // Dodaj puste pole wyboru konta
                 const accountCell = worksheetRow.insertCell();
                 const accountSelect = document.createElement('select');
                 accountSelect.classList.add('form-select', 'form-select-sm');
-                populateAccountSelect(accountSelect); // Wywołaj tę funkcję tutaj
-                worksheetRow.cells[5].appendChild(accountSelect);
+                populateAccountSelect(accountSelect);
+                accountCell.appendChild(accountSelect);
 
-                worksheetRow.insertCell(); // Pusta komórka dla sumy czasu
-
-                // Kolorowanie wiersza na jasnoczerwono
-                worksheetRow.classList.add('worksheet-row-red');
+                worksheetRow.insertCell(); // Puste pole dla sumy czasu
             }
 
             console.log('Added class:', worksheetRow.className);
@@ -351,11 +327,9 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < rows.length; i++) {
             if (rows[i].cells[0].textContent.startsWith(`${day} ${selectedMonthName}`)) {
                 const worksheetRow = rows[i + 1];
-                const inTimeInput = worksheetRow.cells[3].querySelector('input');
-                const outTimeInput = worksheetRow.cells[4].querySelector('input');
                 const accountSelect = worksheetRow.cells[5].querySelector('select');
                 
-                console.log(`Dodawanie wpisu dla ${day}-${parseInt(selectedMonth) + 1}-${selectedYear}, pracownik: ${selectedEnrollNumber}, czytnik: ${machineNumber}: ${inTimeInput.value} - ${outTimeInput.value}`);
+                console.log(`Dodawanie wpisu dla ${day}-${parseInt(selectedMonth) + 1}-${selectedYear}, pracownik: ${selectedEnrollNumber}, czytnik: ${machineNumber}`);
                 
                 fetch('/api/worksheet/add', {
                     method: 'POST',
@@ -367,9 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         month: parseInt(selectedMonth) + 1,
                         year: selectedYear,
                         enrollnumber: selectedEnrollNumber,
-                        machinenumber: machineNumber || '0', // Dodajemy '0' jako wartość domyślną
-                        in_time: inTimeInput.value,
-                        out_time: outTimeInput.value,
+                        machinenumber: machineNumber || '0',
                         account_id: accountSelect.value
                     })
                 })
@@ -409,15 +381,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rows[i].cells[0].textContent.startsWith(`${day} ${selectedMonthName}`)) {
                 const worksheetRow = rows[i + 1];
                 const machineNumber = worksheetRow.cells[2].textContent;
-                const inTimeSpan = worksheetRow.cells[3].querySelector('span');
-                const outTimeSpan = worksheetRow.cells[4].querySelector('span');
+                const inTime = worksheetRow.cells[3].textContent;
+                const outTime = worksheetRow.cells[4].textContent;
                 const accountSelect = worksheetRow.cells[5].querySelector('select');
                 
-                console.log(`Edycja wpisu ${id} dla ${day}-${parseInt(selectedMonth) + 1}-${selectedYear}, pracownik: ${selectedEnrollNumber}, czytnik: ${machineNumber}: ${inTimeSpan.textContent} - ${outTimeSpan.textContent}`);
+                console.log(`Edycja wpisu ${id} dla ${day}-${parseInt(selectedMonth) + 1}-${selectedYear}, pracownik: ${selectedEnrollNumber}, czytnik: ${machineNumber}: ${inTime} - ${outTime}`);
                 
-                // Zmiana ścieżki URL z /worksheet/edit/${id} na /worksheet/edit-entry/${id}
                 fetch(`api/worksheet/edit-entry/${id}`, {
-                    method: 'POST', // Zmiana metody z PUT na POST
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -427,8 +398,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         year: selectedYear,
                         enrollnumber: selectedEnrollNumber,
                         machinenumber: machineNumber,
-                        in_time: inTimeSpan.textContent,
-                        out_time: outTimeSpan.textContent,
                         account_id: accountSelect.value
                     })
                 })
