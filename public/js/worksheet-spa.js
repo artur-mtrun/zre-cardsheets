@@ -223,23 +223,35 @@ function updateCalendar(year, month) {
             getWorksheetDataForDay(year, month, day).then(worksheetData => {
                 if (worksheetData) {
                     // Jeśli istnieją dane Worksheet, wypełnij komórki
-                    worksheetRow.cells[0].textContent = ''; // Pusta komórka dla przycisku "Dodaj"
-                    const account = accounts.find(acc => acc.account_id === worksheetData.account_id);
-                    worksheetRow.cells[1].textContent = account ? account.account_number : '';
-                    // Zmiana tutaj: zawsze wyświetlaj machinenumber, nawet jeśli jest zero
+                    const editButton = document.createElement('button');
+                    editButton.textContent = 'Zmień';
+                    editButton.classList.add('btn', 'btn-sm', 'btn-secondary');
+                    editButton.onclick = () => editWorksheetEntry(worksheetData.worksheet_id, year, month, day, inEvent, outEvent);
+                    worksheetRow.cells[0].appendChild(editButton);
+
+                    const accountSelect = createAccountSelect(worksheetData.account_id, false); // Nie dodajemy opcji "Wybierz konto"
+                    worksheetRow.cells[1].appendChild(accountSelect);
+
                     worksheetRow.cells[2].textContent = worksheetData.machinenumber !== undefined ? worksheetData.machinenumber.toString() : '';
                     worksheetRow.cells[3].textContent = formatTime(worksheetData.in_time);
                     worksheetRow.cells[4].textContent = formatTime(worksheetData.out_time);
                     worksheetRow.cells[5].textContent = worksheetData.work_time ? formatTimeMinutes(worksheetData.work_time) : '';
+
+                    // Dodajemy atrybuty data- do przechowywania oryginalnych wartości
+                    worksheetRow.dataset.originalAccountId = worksheetData.account_id;
+                    worksheetRow.dataset.originalMachinenumber = worksheetData.machinenumber;
+                    worksheetRow.dataset.originalInTime = worksheetData.in_time;
+                    worksheetRow.dataset.originalOutTime = worksheetData.out_time;
+                    worksheetRow.dataset.originalWorkTime = worksheetData.work_time;
                 } else {
-                    // Jeśli nie ma danych Worksheet, dodaj przycisk "Dodaj" i wypełnij resztę danych
+                    // Dla nowych wpisów, używamy createAccountSelect z domyślną opcją
                     const addButton = document.createElement('button');
                     addButton.textContent = 'Dodaj';
                     addButton.classList.add('btn', 'btn-sm', 'btn-primary');
                     addButton.onclick = () => addWorksheetEntry(year, month, day, inEvent, outEvent);
                     worksheetRow.cells[0].appendChild(addButton);
 
-                    const accountSelect = createAccountSelect();
+                    const accountSelect = createAccountSelect(null, true); // Dodajemy opcję "Wybierz konto"
                     worksheetRow.cells[1].appendChild(accountSelect);
 
                     // Zmiana tutaj: zawsze wyświetlaj machinenumber, nawet jeśli jest zero
@@ -385,21 +397,67 @@ function fetchAccounts() {
 }
 
 // Dodaj tę nową funkcję
-function createAccountSelect() {
+function createAccountSelect(selectedAccountId, includeDefaultOption = true) {
     const select = document.createElement('select');
     select.classList.add('form-control', 'form-control-sm');
     
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = 'Wybierz konto';
-    select.appendChild(defaultOption);
+    if (includeDefaultOption) {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Wybierz konto';
+        select.appendChild(defaultOption);
+    }
 
     accounts.forEach(account => {
         const option = document.createElement('option');
         option.value = account.account_id;
         option.textContent = `${account.account_number} - ${account.account_descript}`;
+        if (account.account_id === selectedAccountId) {
+            option.selected = true;
+        }
         select.appendChild(option);
     });
 
     return select;
+}
+
+function editWorksheetEntry(worksheetId, year, month, day, inEvent, outEvent) {
+    const row = event.target.closest('tr');
+    const accountSelect = row.cells[1].querySelector('select');
+    const accountId = accountSelect.value;
+
+    const data = {
+        worksheet_id: worksheetId,
+        day,
+        month: month + 1,
+        year,
+        enrollnumber: document.getElementById('employee-filter').value,
+        machinenumber: row.cells[2].textContent,
+        in_time: row.cells[3].textContent,
+        out_time: row.cells[4].textContent,
+        account_id: accountId,
+        work_time: parseInt(row.cells[5].textContent, 10)
+    };
+
+    fetch(`/api/worksheet/edit-entry/${worksheetId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw err; });
+        }
+        return response.json();
+    })
+    .then(result => {
+        console.log('Success:', result);
+        generateCalendar(); // Odśwież kalendarz po edycji wpisu
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert(error.message || 'Wystąpił błąd podczas edycji wpisu. Spróbuj ponownie.');
+    });
 }

@@ -114,8 +114,7 @@ exports.addWorksheetEntry = async (req, res) => {
 exports.postEditEntry = async (req, res) => {
     try {
         const { id } = req.params;
-        console.log('Otrzymane ID do edycji:', id);
-        const { day, month, year, enrollnumber, machinenumber, in_time, out_time, account_id } = req.body;
+        const { day, month, year, enrollnumber, machinenumber, in_time, out_time, account_id, work_time } = req.body;
         
         const event_date = new Date(year, month - 1, day);
 
@@ -126,7 +125,8 @@ exports.postEditEntry = async (req, res) => {
                 machinenumber,
                 in_time,
                 out_time,
-                account_id
+                account_id,
+                work_time
             },
             {
                 where: { worksheet_id: id },
