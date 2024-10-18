@@ -148,12 +148,10 @@ exports.postEditEntry = async (req, res) => {
 // Dodaj nową funkcję do pobierania kont (będzie używana do wypełniania select'a w formularzu)
 exports.getAccounts = async (req, res) => {
     try {
-        console.log('Controller: Otrzymano żądanie getAccounts');
         const accounts = await Account.findAll({
             attributes: ['account_id', 'account_number', 'account_descript'],
             order: [['account_number', 'ASC']]
         });
-        console.log('Controller: Pobrano konta:', accounts);
         res.json(accounts);
     } catch (error) {
         console.error('Błąd podczas pobierania kont:', error);

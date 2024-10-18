@@ -2,10 +2,12 @@ document.addEventListener('DOMContentLoaded', initializePage);
 
 let currentYear, currentMonth, currentEmployee;
 let events = [];
+let accounts = []; // Dodaj tę linię na początku pliku
 
 function initializePage() {
     initializeFilters();
     fetchEmployees();
+    fetchAccounts(); // Dodaj tę linię
     addEventListeners();
 }
 
@@ -205,12 +207,12 @@ function updateCalendar(year, month) {
 
         calendarBody.appendChild(row);
 
-        // Dodajemy nowy wiersz dla danych Worksheet
+        // Modyfikacja wiersza worksheet
         const worksheetRow = document.createElement('tr');
         worksheetRow.classList.add('worksheet-row');
 
         // Dodajemy puste komórki do wiersza worksheet
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 7; i++) { // Zmienione z 6 na 7
             worksheetRow.appendChild(document.createElement('td'));
         }
 
@@ -226,6 +228,10 @@ function updateCalendar(year, month) {
                     worksheetRow.cells[3].textContent = formatTime(worksheetData.in_time);
                     worksheetRow.cells[4].textContent = formatTime(worksheetData.out_time);
                     worksheetRow.cells[5].textContent = worksheetData.work_time ? formatTimeMinutes(worksheetData.work_time) : '';
+                    
+                    // Dodaj nazwę konta w drugiej kolumnie
+                    const account = accounts.find(acc => acc.account_id === worksheetData.account_id);
+                    worksheetRow.cells[1].textContent = account ? account.account_number : '';
                 } else {
                     // Jeśli nie ma danych Worksheet, dodaj przycisk "Dodaj" i wypełnij resztę danych z wiersza powyżej
                     const addButton = document.createElement('button');
@@ -233,6 +239,10 @@ function updateCalendar(year, month) {
                     addButton.classList.add('btn', 'btn-sm', 'btn-primary');
                     addButton.onclick = () => addWorksheetEntry(year, month, day, inEvent, outEvent);
                     worksheetRow.cells[0].appendChild(addButton);
+
+                    // Dodaj select dla konta w drugiej kolumnie
+                    const accountSelect = createAccountSelect();
+                    worksheetRow.cells[1].appendChild(accountSelect);
 
                     worksheetRow.cells[2].textContent = machineNumberCell.textContent || '';
                     worksheetRow.cells[3].textContent = inTimeCell.textContent || '';
@@ -313,7 +323,69 @@ async function getWorksheetDataForDay(year, month, day) {
 }
 
 function addWorksheetEntry(year, month, day, inEvent, outEvent) {
-    // Ta funkcja powinna dodawać nowy wpis do bazy danych
-    console.log(`Dodawanie wpisu dla ${day}.${month + 1}.${year}`);
-    // Tutaj dodaj kod do wysłania żądania POST do API
+    const employee = document.getElementById('employee-filter').value;
+    const accountSelect = event.target.closest('tr').cells[1].querySelector('select');
+    const accountId = accountSelect ? accountSelect.value : null;
+
+    if (!accountId) {
+        alert('Proszę wybrać konto przed dodaniem wpisu.');
+        return;
+    }
+
+    const data = {
+        day,
+        month: month + 1,
+        year,
+        enrollnumber: employee,
+        machinenumber: inEvent ? inEvent.machinenumber : (outEvent ? outEvent.machinenumber : ''),
+        in_time: inEvent ? inEvent.event_time : '',
+        out_time: outEvent ? outEvent.event_time : '',
+        account_id: accountId
+    };
+
+    fetch('/api/worksheet', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log('Success:', result);
+        generateCalendar(); // Odśwież kalendarz po dodaniu wpisu
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+// Dodaj tę nową funkcję
+function fetchAccounts() {
+    fetch('/api/worksheet/accounts')
+        .then(response => response.json())
+        .then(data => {
+            accounts = data;
+        })
+        .catch(error => console.error('Error fetching accounts:', error));
+}
+
+// Dodaj tę nową funkcję
+function createAccountSelect() {
+    const select = document.createElement('select');
+    select.classList.add('form-control', 'form-control-sm');
+    
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Wybierz konto';
+    select.appendChild(defaultOption);
+
+    accounts.forEach(account => {
+        const option = document.createElement('option');
+        option.value = account.account_id;
+        option.textContent = `${account.account_number} - ${account.account_descript}`;
+        select.appendChild(option);
+    });
+
+    return select;
 }
