@@ -11,6 +11,12 @@
         padding: 5px;
         font-size: 0.9em;
     }
+    .worksheet-row {
+        background-color: #f8f9fa;
+    }
+    .worksheet-row td {
+        border-top: none;
+    }
 </style>
 </head>
 
@@ -49,6 +55,13 @@
                 <select id="employee-filter" class="form-select">
                     <!-- Options will be populated by JavaScript -->
                 </select>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <strong>Firma pracownika: </strong>
+                <span id="employee-company-id"></span> - <span id="employee-company-descript"></span>
             </div>
         </div>
 

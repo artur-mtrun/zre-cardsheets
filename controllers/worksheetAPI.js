@@ -4,6 +4,7 @@ const { Event } = require('../models/event');
 const { Op } = require('sequelize');
 const { Account } = require('../models/account');
 const { getEventsByMonthAndEmployee } = require('./eventsAPI');
+const { Company } = require('../models/company');
 
 
 exports.getWorksheets = async (req, res) => {
@@ -157,5 +158,52 @@ exports.getAccounts = async (req, res) => {
     } catch (error) {
         console.error('Błąd podczas pobierania kont:', error);
         res.status(500).json({ message: 'Wystąpił błąd serwera', error: error.message });
+    }
+};
+
+exports.getWorksheetDataForDay = async (req, res) => {
+    try {
+        const { year, month, day, enrollnumber } = req.query;
+        const date = new Date(year, month - 1, day);
+
+        const worksheetData = await Worksheet.findOne({
+            where: {
+                enrollnumber: enrollnumber,
+                event_date: date
+            }
+        });
+
+        res.json(worksheetData);
+    } catch (error) {
+        console.error('Błąd podczas pobierania danych Worksheet:', error);
+        res.status(500).json({ message: 'Wystąpił błąd serwera', error: error.message });
+    }
+};
+
+exports.getEmployeeData = async (req, res) => {
+    try {
+        const { enrollnumber } = req.query;
+        console.log('Szukam pracownika o enrollnumber:', enrollnumber);
+        
+        const employee = await Employee.findOne({
+            where: { enrollnumber: enrollnumber },
+            attributes: ['enrollnumber', 'company_id'],
+            include: [{
+                model: Company,
+                as: 'Company',  // Dodajemy alias 'company'
+                attributes: ['company_id', 'company_descript']
+            }]
+        });
+
+        console.log('Znaleziony pracownik:', employee);
+
+        if (employee) {
+            res.json(employee);
+        } else {
+            res.status(404).json({ message: 'Pracownik nie znaleziony' });
+        }
+    } catch (error) {
+        console.error('Błąd podczas pobierania danych pracownika:', error);
+        res.status(500).json({ message: 'Wystąpił błąd serwera', error: error.toString() });
     }
 };

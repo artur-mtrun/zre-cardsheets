@@ -56,10 +56,42 @@ function addEventListeners() {
     document.getElementById('employee-filter').addEventListener('change', generateCalendar);
 }
 
+// Dodaj tę nową funkcję
+async function fetchEmployeeData(enrollnumber) {
+    try {
+        const response = await fetch(`/api/worksheet/employee-data?enrollnumber=${enrollnumber}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log('Pobrane dane pracownika:', data); // Dodaj to dla debugowania
+        return data;
+    } catch (error) {
+        console.error('Error fetching employee data:', error);
+        throw error; // Rzuć błąd, aby został obsłużony w .catch() w generateCalendar
+    }
+}
+
+// Zmodyfikuj funkcję generateCalendar
 function generateCalendar() {
     const year = parseInt(document.getElementById('year-filter').value);
     const month = parseInt(document.getElementById('month-filter').value) - 1;
     const employee = document.getElementById('employee-filter').value;
+
+    fetchEmployeeData(employee).then(employeeData => {
+        console.log('Otrzymane dane pracownika:', employeeData); // Dodaj to dla debugowania
+        if (employeeData && employeeData.Company) {
+            document.getElementById('employee-company-id').textContent = employeeData.Company.company_id;
+            document.getElementById('employee-company-descript').textContent = employeeData.Company.company_descript;
+        } else {
+            document.getElementById('employee-company-id').textContent = 'Brak danych';
+            document.getElementById('employee-company-descript').textContent = 'Brak danych';
+        }
+    }).catch(error => {
+        console.error('Błąd podczas pobierania danych pracownika:', error);
+        document.getElementById('employee-company-id').textContent = 'Błąd';
+        document.getElementById('employee-company-descript').textContent = 'Błąd';
+    });
 
     fetchEvents(year, month, employee);
 }
@@ -155,10 +187,10 @@ function updateCalendar(year, month) {
             }
         }
 
-        // Obliczanie czasu pracy
+        // Obliczanie i wyświetlanie czasu pracy w formacie godzinowym dla wiersza kalendarza
         if (inEvent && outEvent) {
-            const workTime = calculateWorkTime(inEvent, outEvent);
-            workTimeCell.textContent = formatWorkTime(workTime);
+            const workTimeInMinutes = calculateWorkTime(inEvent, outEvent);
+            workTimeCell.textContent = formatTimeHours(workTimeInMinutes);
         }
 
         if (inEvent && !outEvent) {
@@ -172,18 +204,71 @@ function updateCalendar(year, month) {
         row.appendChild(workTimeCell);
 
         calendarBody.appendChild(row);
+
+        // Dodajemy nowy wiersz dla danych Worksheet
+        const worksheetRow = document.createElement('tr');
+        worksheetRow.classList.add('worksheet-row');
+
+        // Dodajemy puste komórki do wiersza worksheet
+        for (let i = 0; i < 6; i++) {
+            worksheetRow.appendChild(document.createElement('td'));
+        }
+
+        // Sprawdzamy, czy wiersz powyżej zawiera godziny wejścia i wyjścia
+        const hasEntryData = inTimeCell.textContent && outTimeCell.textContent;
+
+        if (hasEntryData) {
+            // Pobierz dane Worksheet dla tego dnia
+            getWorksheetDataForDay(year, month, day).then(worksheetData => {
+                if (worksheetData) {
+                    // Jeśli istnieją dane Worksheet, wypełnij komórki
+                    worksheetRow.cells[2].textContent = worksheetData.machinenumber || '';
+                    worksheetRow.cells[3].textContent = formatTime(worksheetData.in_time);
+                    worksheetRow.cells[4].textContent = formatTime(worksheetData.out_time);
+                    worksheetRow.cells[5].textContent = worksheetData.work_time ? formatTimeMinutes(worksheetData.work_time) : '';
+                } else {
+                    // Jeśli nie ma danych Worksheet, dodaj przycisk "Dodaj" i wypełnij resztę danych z wiersza powyżej
+                    const addButton = document.createElement('button');
+                    addButton.textContent = 'Dodaj';
+                    addButton.classList.add('btn', 'btn-sm', 'btn-primary');
+                    addButton.onclick = () => addWorksheetEntry(year, month, day, inEvent, outEvent);
+                    worksheetRow.cells[0].appendChild(addButton);
+
+                    worksheetRow.cells[2].textContent = machineNumberCell.textContent || '';
+                    worksheetRow.cells[3].textContent = inTimeCell.textContent || '';
+                    worksheetRow.cells[4].textContent = outTimeCell.textContent || '';
+                    const workTimeInMinutes = inEvent && outEvent ? calculateWorkTime(inEvent, outEvent) : 0;
+                    worksheetRow.cells[5].textContent = formatTimeMinutes(workTimeInMinutes);
+                }
+            }).catch(error => {
+                console.error('Error fetching worksheet data:', error);
+            });
+        }
+
+        calendarBody.appendChild(worksheetRow);
     }
 }
 
 function formatTime(timeString) {
+    if (!timeString) return ''; // Jeśli timeString jest undefined lub null, zwróć pusty string
     console.log('Oryginalny czas:', timeString);
     return timeString.slice(0, 5);  // Zwracamy tylko godziny i minuty (HH:MM)
 }
 
-function formatWorkTime(timeInMinutes) {
+function formatTimeHours(timeInMinutes) {
+    if (typeof timeInMinutes !== 'number' || isNaN(timeInMinutes)) {
+        return '';
+    }
     const hours = Math.floor(timeInMinutes / 60);
-    const minutes = Math.floor(timeInMinutes % 60);
+    const minutes = Math.round(timeInMinutes % 60);
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
+
+function formatTimeMinutes(timeInMinutes) {
+    if (typeof timeInMinutes !== 'number' || isNaN(timeInMinutes)) {
+        return '';
+    }
+    return Math.round(timeInMinutes).toString();
 }
 
 function calculateWorkTime(inEvent, outEvent) {
@@ -193,12 +278,12 @@ function calculateWorkTime(inEvent, outEvent) {
     if (inTime && outTime) {
         let diffInMinutes = (outTime - inTime) / (1000 * 60);
         
-        // Jeśli czas wyjścia jest wcześniejszy niż czas wejścia, zakładamy, że wyjście było następnego dnia
+        // Jeśli czas wyjścia jest wcześniejszy niż czas wejścia, zakładamy, e wyjście było następnego dnia
         if (diffInMinutes < 0) {
             diffInMinutes += 24 * 60; // dodajemy 24 godziny w minutach
         }
         
-        return diffInMinutes;
+        return Math.round(diffInMinutes); // Zaokrąglamy do najbliższej liczby całkowitej
     }
     return 0;
 }
@@ -210,4 +295,25 @@ function parseDateTime(dateString, timeString) {
     const [hours, minutes, seconds] = timeString.split(':');
     
     return new Date(year, month - 1, day, hours, minutes, seconds);
+}
+
+async function getWorksheetDataForDay(year, month, day) {
+    const employee = document.getElementById('employee-filter').value;
+    try {
+        const response = await fetch(`/api/worksheet/worksheet-data?year=${year}&month=${month + 1}&day=${day}&enrollnumber=${employee}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data || null; // Zwróć null, jeśli nie ma danych
+    } catch (error) {
+        console.error('Error fetching worksheet data:', error);
+        return null;
+    }
+}
+
+function addWorksheetEntry(year, month, day, inEvent, outEvent) {
+    // Ta funkcja powinna dodawać nowy wpis do bazy danych
+    console.log(`Dodawanie wpisu dla ${day}.${month + 1}.${year}`);
+    // Tutaj dodaj kod do wysłania żądania POST do API
 }
