@@ -2,6 +2,7 @@ const { Company } = require('./company');
 const { Employee } = require('./employee');
 const { Worksheet } = require('./worksheet');
 const { Account } = require('./account');
+const { Card } = require('./card');
 
 // Istniejące asocjacje
 Employee.belongsTo(Company, { foreignKey: 'company_id', as: 'Company' });
@@ -15,8 +16,12 @@ Worksheet.belongsTo(Company, { foreignKey: 'company_id', as: 'Company' });
 Worksheet.belongsTo(Account, { foreignKey: 'account_id', as: 'Account' });
 Account.hasMany(Worksheet, { foreignKey: 'account_id', as: 'Worksheets' });
 
-// Możesz również dodać powiązanie między Employee a Worksheet, jeśli jest to potrzebne
+// Powiązanie między Employee a Worksheet
 Employee.hasMany(Worksheet, { foreignKey: 'enrollnumber', sourceKey: 'enrollnumber' });
 Worksheet.belongsTo(Employee, { foreignKey: 'enrollnumber', targetKey: 'enrollnumber' });
 
-module.exports = { Company, Employee, Worksheet, Account };
+// Dodaj asocjację między Card a Employee
+Card.belongsTo(Employee, { foreignKey: 'cardnumber', targetKey: 'cardnumber', as: 'Employee' });
+Employee.hasOne(Card, { foreignKey: 'cardnumber', sourceKey: 'cardnumber', as: 'Card' });
+
+module.exports = { Company, Employee, Worksheet, Account, Card };

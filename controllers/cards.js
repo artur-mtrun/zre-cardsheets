@@ -1,13 +1,19 @@
 const { Card } = require('../models/card');
-const Employee = require('../models/employee');
+const { Employee } = require('../models/employee');
 
 exports.getCards = (req, res, next) => {
     if (!req.session.isLoggedIn) {
         return res.redirect('/login');
     }
-    Card.findAll()
+    Card.findAll({
+        include: [{
+            model: Employee,
+            as: 'Employee',
+            attributes: ['nick']
+        }]
+    })
     .then(cards => {
-        console.log('karty');
+        console.log('karty', cards);
         res.render('cards/card-list', {
             cards: cards,
             pageTitle: 'Wszystkie karty',
