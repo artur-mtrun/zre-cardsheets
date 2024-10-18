@@ -212,39 +212,38 @@ function updateCalendar(year, month) {
         worksheetRow.classList.add('worksheet-row');
 
         // Dodajemy puste komórki do wiersza worksheet
-        for (let i = 0; i < 7; i++) { // Zmienione z 6 na 7
+        const numberOfColumns = 6;
+        for (let i = 0; i < numberOfColumns; i++) {
             worksheetRow.appendChild(document.createElement('td'));
         }
 
-        // Sprawdzamy, czy wiersz powyżej zawiera godziny wejścia i wyjścia
         const hasEntryData = inTimeCell.textContent && outTimeCell.textContent;
 
         if (hasEntryData) {
-            // Pobierz dane Worksheet dla tego dnia
             getWorksheetDataForDay(year, month, day).then(worksheetData => {
                 if (worksheetData) {
                     // Jeśli istnieją dane Worksheet, wypełnij komórki
-                    worksheetRow.cells[2].textContent = worksheetData.machinenumber || '';
+                    worksheetRow.cells[0].textContent = ''; // Pusta komórka dla przycisku "Dodaj"
+                    const account = accounts.find(acc => acc.account_id === worksheetData.account_id);
+                    worksheetRow.cells[1].textContent = account ? account.account_number : '';
+                    // Zmiana tutaj: zawsze wyświetlaj machinenumber, nawet jeśli jest zero
+                    worksheetRow.cells[2].textContent = worksheetData.machinenumber !== undefined ? worksheetData.machinenumber.toString() : '';
                     worksheetRow.cells[3].textContent = formatTime(worksheetData.in_time);
                     worksheetRow.cells[4].textContent = formatTime(worksheetData.out_time);
                     worksheetRow.cells[5].textContent = worksheetData.work_time ? formatTimeMinutes(worksheetData.work_time) : '';
-                    
-                    // Dodaj nazwę konta w drugiej kolumnie
-                    const account = accounts.find(acc => acc.account_id === worksheetData.account_id);
-                    worksheetRow.cells[1].textContent = account ? account.account_number : '';
                 } else {
-                    // Jeśli nie ma danych Worksheet, dodaj przycisk "Dodaj" i wypełnij resztę danych z wiersza powyżej
+                    // Jeśli nie ma danych Worksheet, dodaj przycisk "Dodaj" i wypełnij resztę danych
                     const addButton = document.createElement('button');
                     addButton.textContent = 'Dodaj';
                     addButton.classList.add('btn', 'btn-sm', 'btn-primary');
                     addButton.onclick = () => addWorksheetEntry(year, month, day, inEvent, outEvent);
                     worksheetRow.cells[0].appendChild(addButton);
 
-                    // Dodaj select dla konta w drugiej kolumnie
                     const accountSelect = createAccountSelect();
                     worksheetRow.cells[1].appendChild(accountSelect);
 
-                    worksheetRow.cells[2].textContent = machineNumberCell.textContent || '';
+                    // Zmiana tutaj: zawsze wyświetlaj machinenumber, nawet jeśli jest zero
+                    worksheetRow.cells[2].textContent = machineNumberCell.textContent !== undefined ? machineNumberCell.textContent : '';
                     worksheetRow.cells[3].textContent = inTimeCell.textContent || '';
                     worksheetRow.cells[4].textContent = outTimeCell.textContent || '';
                     const workTimeInMinutes = inEvent && outEvent ? calculateWorkTime(inEvent, outEvent) : 0;
