@@ -17,16 +17,12 @@ Card.init({
     area_id: {
         type: DataTypes.INTEGER,
         allowNull: false
-    },
-    user_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
     }
 }, {
     sequelize, // Przekazanie instancji Sequelize
     modelName: 'card'
 });
 
-//Card.belongsTo(Employee, { foreignKey: 'user_id' });
+
 
 module.exports = {Card};

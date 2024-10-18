@@ -6,21 +6,35 @@
 
 <body>
     <%- include('../includes/navigation.ejs') %>
-    <main>
-        <form class="centered-form" action="/add-card" method="POST">
-            <div class="form-control">
-                <label for="cardnumber">Numer</label>
-                <input type="text" name="cardnumber" id="cardnumber" required>
+    <main class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center">Dodaj nową kartę</h2>
+                    </div>
+                    <div class="card-body">
+                        <% if (locals.errorMessage) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= errorMessage %>
+                            </div>
+                        <% } %>
+                        <form action="/add-card" method="POST">
+                            <div class="mb-3">
+                                <label for="cardnumber" class="form-label">Numer karty</label>
+                                <input type="text" class="form-control" name="cardnumber" id="cardnumber" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="area_id" class="form-label">Obszar</label>
+                                <input type="text" class="form-control" name="area_id" id="area_id" required>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-primary" type="submit">Dodaj kartę</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="form-control">
-                <label for="area_id">Obszar</label>
-                <input type="text" name="area_id" id="area_id" required>
-            </div>
-            <div class="form-control">
-                <label for="owner">Właściciel</label>
-                <input type="text" name="user_id" id="user_id" value="0" required>
-            </div>
-            <button class="btn" type="submit">Dodaj kartę</button>
-        </form>
+        </div>
     </main>
 <%- include('../includes/end.ejs') %>

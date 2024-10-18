@@ -29,10 +29,12 @@
                             <td><%= card.area_id %></td>
                             <td><%= card.Employee ? card.Employee.nick : 'Nie przypisana' %></td>
                             <td>
-                                <form action="/delete-card" method="POST" class="d-inline">
-                                    <input type="hidden" value="<%= card.cardNumber %>" name="cardNumber">
-                                    <button class="btn btn-danger btn-sm" type="submit">Usuń</button>
-                                </form>
+                                <% if (!card.Employee) { %>
+                                    <form action="/delete-card" method="POST" class="d-inline">
+                                        <input type="hidden" value="<%= card.cardnumber %>" name="cardNumber">
+                                        <button class="btn btn-danger btn-sm" type="submit">Usuń</button>
+                                    </form>
+                                <% } %>
                             </td>
                         </tr>
                     <% }) %>
@@ -46,3 +48,13 @@
     </main>
 
 <%- include('../includes/end.ejs') %>
+
+<script>
+    document.querySelectorAll('form[action="/delete-card"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Czy na pewno chcesz usunąć tę kartę?')) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>

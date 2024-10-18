@@ -27,7 +27,8 @@ Employee.init({
     },
     cardnumber: {         
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: false,
+        unique: true
     },
     to_send: {
         type: DataTypes.BOOLEAN,

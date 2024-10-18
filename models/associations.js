@@ -20,8 +20,18 @@ Account.hasMany(Worksheet, { foreignKey: 'account_id', as: 'Worksheets' });
 Employee.hasMany(Worksheet, { foreignKey: 'enrollnumber', sourceKey: 'enrollnumber' });
 Worksheet.belongsTo(Employee, { foreignKey: 'enrollnumber', targetKey: 'enrollnumber' });
 
-// Dodaj asocjację między Card a Employee
-Card.belongsTo(Employee, { foreignKey: 'cardnumber', targetKey: 'cardnumber', as: 'Employee' });
-Employee.hasOne(Card, { foreignKey: 'cardnumber', sourceKey: 'cardnumber', as: 'Card' });
+// Zmodyfikowana asocjacja między Card a Employee
+Card.belongsTo(Employee, { 
+  foreignKey: 'cardnumber', 
+  targetKey: 'cardnumber', 
+  as: 'Employee',
+  constraints: false // Dodajemy tę opcję
+});
+Employee.hasOne(Card, { 
+  foreignKey: 'cardnumber', 
+  sourceKey: 'cardnumber', 
+  as: 'Card',
+  constraints: false // Dodajemy tę opcję
+});
 
 module.exports = { Company, Employee, Worksheet, Account, Card };

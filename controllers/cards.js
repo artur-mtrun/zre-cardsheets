@@ -39,21 +39,62 @@ exports.getAddCard = (req, res, next) => {
         isAdmin: req.session.isAdmin
     });
 };
-exports.postAddCard = (req, res, next) => {
+exports.postAddCard = async (req, res, next) => {
     if (!req.session.isLoggedIn) {
         return res.redirect('/login');
     }
-    const cardnumber = req.body.cardnumber;
-    const area_id = req.body.area_id;
-    const user_id = req.body.user_id;
-    Card.create({
-        cardnumber: cardnumber,
-        area_id: area_id,
-        user_id: user_id    
-    }).then(result => {
+    try {
+        const { cardnumber, area_id } = req.body;
+        console.log('Próba dodania karty:', { cardnumber, area_id });
+
+        // Sprawdź, czy karta już istnieje
+        const existingCard = await Card.findOne({ where: { cardnumber } });
+        if (existingCard) {
+            throw new Error('Karta o tym numerze już istnieje');
+        }
+
+        // Utwórz nową kartę
+        const newCard = await Card.create({ 
+            cardnumber: parseInt(cardnumber), 
+            area_id: parseInt(area_id) 
+        });
+        console.log('Karta dodana pomyślnie:', newCard.toJSON());
+
         res.redirect('/card-list');
-    }).catch(err => {
-        next(err);
-    });
+    } catch (error) {
+        console.error('Błąd podczas dodawania karty:', error);
+        res.status(400).render('cards/add-card', {
+            pageTitle: 'Dodaj kartę',
+            path: '/add-card',
+            errorMessage: error.message,
+            isAuthenticated: req.session.isLoggedIn,
+            isAdmin: req.session.isAdmin
+        });
+    }
 };
 
+exports.postDeleteCard = async (req, res, next) => {
+    if (!req.session.isLoggedIn) {
+        return res.redirect('/login');
+    }
+
+    const cardNumber = req.body.cardNumber;
+
+    try {
+        const card = await Card.findOne({ where: { cardnumber: cardNumber } });
+
+        if (!card) {
+            return res.status(404).json({ message: 'Karta nie znaleziona' });
+        }
+
+        if (card.Employee) {
+            return res.status(400).json({ message: 'Nie można usunąć przypisanej karty' });
+        }
+
+        await card.destroy();
+        res.redirect('/card-list');
+    } catch (err) {
+        console.error('Błąd podczas usuwania karty:', err);
+        next(err);
+    }
+};
