@@ -324,13 +324,20 @@ async function getWorksheetDataForDay(year, month, day) {
 
 function addWorksheetEntry(year, month, day, inEvent, outEvent) {
     const employee = document.getElementById('employee-filter').value;
-    const accountSelect = event.target.closest('tr').cells[1].querySelector('select');
+    const row = event.target.closest('tr');
+    const accountSelect = row.cells[1].querySelector('select');
     const accountId = accountSelect ? accountSelect.value : null;
 
     if (!accountId) {
         alert('Proszę wybrać konto przed dodaniem wpisu.');
         return;
     }
+
+    // Pobierz wartość czasu pracy z wiersza
+    const workTimeCell = row.cells[5];
+    const workTime = workTimeCell ? parseInt(workTimeCell.textContent, 10) : 0;
+
+    console.log('Czas pracy przed wysłaniem:', workTime); // Dodaj to dla debugowania
 
     const data = {
         day,
@@ -340,23 +347,31 @@ function addWorksheetEntry(year, month, day, inEvent, outEvent) {
         machinenumber: inEvent ? inEvent.machinenumber : (outEvent ? outEvent.machinenumber : ''),
         in_time: inEvent ? inEvent.event_time : '',
         out_time: outEvent ? outEvent.event_time : '',
-        account_id: accountId
+        account_id: accountId,
+        work_time: workTime // Upewnij się, że ta wartość jest poprawna
     };
 
-    fetch('/api/worksheet', {
+    fetch('/api/worksheet/add-entry', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw err; });
+        }
+        return response.json();
+    })
     .then(result => {
         console.log('Success:', result);
+        console.log('Czas pracy po dodaniu:', result.entry.work_time); // Dodaj to dla debugowania
         generateCalendar(); // Odśwież kalendarz po dodaniu wpisu
     })
     .catch((error) => {
         console.error('Error:', error);
+        alert(error.message || 'Wystąpił błąd podczas dodawania wpisu. Spróbuj ponownie.');
     });
 }
 

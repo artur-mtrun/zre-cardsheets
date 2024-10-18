@@ -5,7 +5,7 @@ const worksheetAPIController = require('../controllers/worksheetAPI');
 router.get('/employees', worksheetAPIController.getAllEmployees);
 router.get('/events', worksheetAPIController.getEvents);
 router.get('/data', worksheetAPIController.getWorksheetData);
-router.post('/add', worksheetAPIController.addWorksheetEntry);
+router.post('/add-entry', worksheetAPIController.addWorksheetEntry);
 router.post('/edit-entry/:id', worksheetAPIController.postEditEntry);
 router.get('/accounts', worksheetAPIController.getAccounts);
 router.get('/worksheet-data', worksheetAPIController.getWorksheetDataForDay);

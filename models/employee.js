@@ -18,7 +18,8 @@ Employee.init({
     },
     enrollnumber: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: false,
+        unique: true // Dodajemy unikalność dla enrollnumber
     },
     area_id: {
         type: DataTypes.INTEGER,
@@ -38,7 +39,13 @@ Employee.init({
     }
 }, {
     sequelize,
-    modelName: 'employee'
+    modelName: 'employee',
+    indexes: [
+        {
+            unique: true,
+            fields: ['enrollnumber']
+        }
+    ]
 });
 
 module.exports = { Employee };

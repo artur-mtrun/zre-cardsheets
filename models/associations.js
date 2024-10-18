@@ -16,7 +16,7 @@ Worksheet.belongsTo(Account, { foreignKey: 'account_id', as: 'Account' });
 Account.hasMany(Worksheet, { foreignKey: 'account_id', as: 'Worksheets' });
 
 // Możesz również dodać powiązanie między Employee a Worksheet, jeśli jest to potrzebne
-Employee.hasMany(Worksheet, { foreignKey: 'enrollnumber', as: 'Worksheets' });
-Worksheet.belongsTo(Employee, { foreignKey: 'enrollnumber', as: 'Employee' });
+Employee.hasMany(Worksheet, { foreignKey: 'enrollnumber', sourceKey: 'enrollnumber' });
+Worksheet.belongsTo(Employee, { foreignKey: 'enrollnumber', targetKey: 'enrollnumber' });
 
 module.exports = { Company, Employee, Worksheet, Account };

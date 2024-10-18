@@ -73,24 +73,22 @@ exports.getWorksheetData = async (req, res) => {
 
 exports.addWorksheetEntry = async (req, res) => {
     try {
-        const { day, month, year, enrollnumber, machinenumber, in_time, out_time, account_id } = req.body;
+        const { day, month, year, enrollnumber, machinenumber, in_time, out_time, account_id, work_time } = req.body;
         
+        console.log('Otrzymany czas pracy:', work_time); // Dodaj to dla debugowania
+
+        // Sprawdź, czy pracownik istnieje
+        const employee = await Employee.findOne({
+            where: { enrollnumber: enrollnumber }
+        });
+
+        if (!employee) {
+            return res.status(400).json({ message: 'Nie znaleziono pracownika o podanym enrollnumber' });
+        }
+
         // Tworzenie daty z otrzymanych danych
         const event_date = new Date(year, month - 1, day);
         console.log('Utworzona data:', event_date);
-
-        // Sprawdzenie, czy wpis już istnieje
-        const existingEntry = await Worksheet.findOne({
-            where: {
-                enrollnumber,
-                event_date
-            }
-        });
-
-        if (existingEntry) {
-            console.log('Znaleziono istniejący wpis:', existingEntry);
-            return res.status(400).json({ message: 'Wpis dla tego dnia i pracownika już istnieje' });
-        }
 
         // Tworzenie nowego wpisu
         const newEntry = await Worksheet.create({
@@ -99,7 +97,9 @@ exports.addWorksheetEntry = async (req, res) => {
             machinenumber,
             in_time,
             out_time,
-            account_id
+            account_id,
+            company_id: employee.company_id,
+            work_time // Używamy przesłanej wartości work_time bez modyfikacji
         });
 
         console.log('Utworzony nowy wpis:', newEntry);
