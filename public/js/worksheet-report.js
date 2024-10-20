@@ -162,39 +162,46 @@ function generatePDF() {
     doc.addFont('/fonts/roboto.ttf', 'Polish', 'normal');
     doc.setFont('Polish');
 
-    // Dodaj nagłówek z wybranymi filtrami
-    let headerText = `Raport za ${document.getElementById('month-filter').options[document.getElementById('month-filter').selectedIndex].text} ${document.getElementById('year-filter').value}\n`;
-    
+    // Tytuł raportu
+    doc.setFontSize(18);
+    const title = `Raport za ${document.getElementById('month-filter').options[document.getElementById('month-filter').selectedIndex].text} ${document.getElementById('year-filter').value}`;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const titleWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+    doc.text(title, (pageWidth - titleWidth) / 2, 20);
+
+    // Opcje filtra
+    doc.setFontSize(11);
+    let yPosition = 30;
+
     const accountFilter = document.getElementById('account-filter');
     if (accountFilter.value !== "") {
-        headerText += `Konto: ${accountFilter.options[accountFilter.selectedIndex].text}\n`;
+        doc.text(`Konto: ${accountFilter.options[accountFilter.selectedIndex].text}`, 10, yPosition);
+        yPosition += 7;
     }
     
     const companyFilter = document.getElementById('company-filter');
     if (companyFilter.value !== "") {
-        headerText += `Firma: ${companyFilter.options[companyFilter.selectedIndex].text}\n`;
+        doc.text(`Firma: ${companyFilter.options[companyFilter.selectedIndex].text}`, 10, yPosition);
+        yPosition += 7;
     }
     
     const employeeFilter = document.getElementById('employee-filter');
     if (employeeFilter.value !== "") {
-        headerText += `Pracownik: ${employeeFilter.options[employeeFilter.selectedIndex].text}\n`;
+        doc.text(`Pracownik: ${employeeFilter.options[employeeFilter.selectedIndex].text}`, 10, yPosition);
+        yPosition += 7;
     }
-    
-    doc.text(headerText, 10, 10);
 
-    // Pobierz dane z tabeli
+    // Tabela
     const table = document.getElementById('report-table');
     
-    // Użyj autoTable do wygenerowania tabeli w PDF
     doc.autoTable({
         html: table,
-        startY: 30,
-        styles: { font: 'Polish' },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        startY: yPosition + 15,
+        styles: { font: 'Polish', fontSize: 9 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 10 },
         alternateRowStyles: { fillColor: [245, 245, 245] },
-        margin: { top: 30 }
+        margin: { top: 40 }
     });
 
-    // Zapisz PDF
     doc.save('raport.pdf');
 }
