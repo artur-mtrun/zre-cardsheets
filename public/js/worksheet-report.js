@@ -103,6 +103,8 @@ function generateReport() {
 function updateReportTable(data) {
     const tableBody = document.querySelector('#report-table tbody');
     tableBody.innerHTML = '';
+    
+    let totalMinutes = 0;
 
     data.forEach(entry => {
         const row = document.createElement('tr');
@@ -116,7 +118,17 @@ function updateReportTable(data) {
             <td>${formatWorkTime(entry.work_time)}</td>
         `;
         tableBody.appendChild(row);
+        
+        totalMinutes += entry.work_time || 0;
     });
+
+    // Dodaj wiersz podsumowania
+    const summaryRow = document.createElement('tr');
+    summaryRow.innerHTML = `
+        <td colspan="6" style="text-align: right;"><strong>Suma czasu pracy:</strong></td>
+        <td><strong>${formatWorkTime(totalMinutes)}</strong></td>
+    `;
+    tableBody.appendChild(summaryRow);
 }
 
 function formatDate(dateString) {
