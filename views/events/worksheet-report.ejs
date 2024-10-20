@@ -69,6 +69,10 @@
                 <label class="form-label">&nbsp;</label>
                 <button id="generate-report" class="btn btn-primary form-control">Generuj raport</button>
             </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button id="generate-pdf" class="btn btn-secondary form-control">Generuj PDF</button>
+            </div>
         </div>
 
         <div id="report-container">
@@ -94,5 +98,7 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <script src="/js/worksheet-report.js"></script>
 <%- include('../includes/end.ejs') %>
