@@ -28,4 +28,13 @@ router.get('/events-count', (req, res) => {
   });
 });
 
+router.get('/worksheet-report', (req, res) => {
+  res.render('events/worksheet-report', {
+    pageTitle: 'Raport arkusza roboczego',
+    path: '/worksheet-report',
+    isAuthenticated: req.session.isLoggedIn,
+    isAdmin: req.session.isAdmin
+  });
+});
+
 module.exports = router;

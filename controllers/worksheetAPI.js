@@ -205,3 +205,61 @@ exports.getEmployeeData = async (req, res) => {
         res.status(500).json({ message: 'Wystąpił błąd serwera', error: error.toString() });
     }
 };
+
+exports.getWorksheetReport = async (req, res) => {
+    try {
+        const { year, month, account_id, company_id, employee_id } = req.query;
+        
+        let whereClause = {
+            event_date: {
+                [Op.between]: [
+                    new Date(year, month - 1, 1),
+                    new Date(year, month, 0)
+                ]
+            }
+        };
+
+        if (account_id) whereClause.account_id = account_id;
+        if (company_id) whereClause.company_id = company_id;
+        if (employee_id) whereClause.enrollnumber = employee_id;
+
+        const report = await Worksheet.findAll({
+            where: whereClause,
+            include: [
+                { model: Employee, attributes: ['nick'] },
+                { model: Company, attributes: ['company_descript'] },
+                { model: Account, attributes: ['account_number', 'account_descript'] }
+            ],
+            order: [['event_date', 'ASC'], ['in_time', 'ASC']]
+        });
+
+        const formattedReport = report.map(entry => ({
+            event_date: entry.event_date,
+            employee_nick: entry.employee.nick,
+            company_descript: entry.company.company_descript,
+            account_number: entry.account.account_number,
+            account_descript: entry.account.account_descript,
+            in_time: entry.in_time,
+            out_time: entry.out_time,
+            work_time: entry.work_time
+        }));
+
+        res.json(formattedReport);
+    } catch (error) {
+        console.error('Error generating report:', error);
+        res.status(500).json({ message: 'Wystąpił błąd podczas generowania raportu', error: error.message });
+    }
+};
+
+exports.getCompanies = async (req, res) => {
+    try {
+        const companies = await Company.findAll({
+            attributes: ['company_id', 'company_descript'],
+            order: [['company_descript', 'ASC']]
+        });
+        res.json(companies);
+    } catch (error) {
+        console.error('Error fetching companies:', error);
+        res.status(500).json({ message: 'Wystąpił błąd podczas pobierania firm', error: error.message });
+    }
+};

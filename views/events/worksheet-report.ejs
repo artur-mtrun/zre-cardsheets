@@ -1,0 +1,95 @@
+<%- include('../includes/head.ejs') %>
+<style>
+    #report-container {
+        height: auto;
+        overflow-y: visible;
+    }
+    #report-table {
+        width: 100%;
+    }
+    #report-table th, #report-table td {
+        padding: 5px;
+        font-size: 0.9em;
+    }
+</style>
+</head>
+
+<body>
+    <%- include('../includes/navigation.ejs') %>
+
+    <div class="container mt-4">
+        <h1>Raport arkusza roboczego</h1>
+        
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <label for="year-filter" class="form-label">Rok:</label>
+                <select id="year-filter" class="form-select">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="month-filter" class="form-label">Miesiąc:</label>
+                <select id="month-filter" class="form-select">
+                    <option value="01">Styczeń</option>
+                    <option value="02">Luty</option>
+                    <option value="03">Marzec</option>
+                    <option value="04">Kwiecień</option>
+                    <option value="05">Maj</option>
+                    <option value="06">Czerwiec</option>
+                    <option value="07">Lipiec</option>
+                    <option value="08">Sierpień</option>
+                    <option value="09">Wrzesień</option>
+                    <option value="10">Październik</option>
+                    <option value="11">Listopad</option>
+                    <option value="12">Grudzień</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="account-filter" class="form-label">Konto:</label>
+                <select id="account-filter" class="form-select">
+                    <option value="">Wybierz konto</option>
+                    <!-- Opcje będą dodane przez JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="company-filter" class="form-label">Firma:</label>
+                <select id="company-filter" class="form-select">
+                    <option value="">Wybierz firmę</option>
+                    <!-- Opcje będą dodane przez JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="employee-filter" class="form-label">Pracownik:</label>
+                <select id="employee-filter" class="form-select">
+                    <option value="">Wybierz pracownika</option>
+                    <!-- Opcje będą dodane przez JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button id="generate-report" class="btn btn-primary form-control">Generuj raport</button>
+            </div>
+        </div>
+
+        <div id="report-container">
+            <table id="report-table" class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Pracownik</th>
+                        <th>Firma</th>
+                        <th>Konto</th>
+                        <th>Wejście</th>
+                        <th>Wyjście</th>
+                        <th>Czas pracy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Report rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/js/worksheet-report.js"></script>
+<%- include('../includes/end.ejs') %>

@@ -10,5 +10,7 @@ router.post('/edit-entry/:id', worksheetAPIController.postEditEntry);
 router.get('/accounts', worksheetAPIController.getAccounts);
 router.get('/worksheet-data', worksheetAPIController.getWorksheetDataForDay);
 router.get('/employee-data', worksheetAPIController.getEmployeeData);
+router.get('/report', worksheetAPIController.getWorksheetReport);
+router.get('/companies', worksheetAPIController.getCompanies);
 
 module.exports = router;
