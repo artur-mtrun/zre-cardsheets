@@ -1,4 +1,4 @@
-const { Employee, Company } = require('../models/associations');
+const { Employee, Company, Area } = require('../models/associations');
 const { validationResult } = require('express-validator');
 const { 
     checkAuth, 
@@ -11,7 +11,10 @@ exports.getEmployees = async (req, res, next) => {
     if (!checkAuth(req, res)) return;
 
     let findOptions = {
-        include: [{ model: Company, as: 'Company' }]
+        include: [
+            { model: Company, as: 'Company' },
+            { model: Area, as: 'Area' }
+        ]
     };
     
     if (req.session.area_id !== 0) {

@@ -32,7 +32,7 @@
                             <td><%= employee.enrollnumber %></td>
                             <td><%= employee.nick %></td>
                             <td><%= employee.cardnumber %></td>
-                            <td><%= employee.area_id %></td>
+                            <td><%= employee.Area ? employee.Area.descript : 'Brak' %></td>
                             <td><%= employee.Company ? employee.Company.company_descript : 'Brak' %></td>
                             <td>
                                 <% if (employee.cardnumber === 0 || employee.cardnumber === null || employee.cardnumber === '') { %>

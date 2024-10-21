@@ -3,11 +3,15 @@ const { Employee } = require('./employee');
 const { Worksheet } = require('./worksheet');
 const { Account } = require('./account');
 const { Card } = require('./card');
+const { Area } = require('./area');
 
 // Istniejące asocjacje
 Employee.belongsTo(Company, { foreignKey: 'company_id', as: 'Company' });
 Company.hasMany(Employee, { foreignKey: 'company_id', as: 'Employees' });
 
+// Dodaj tę asocjację
+Employee.belongsTo(Area, { foreignKey: 'area_id', as: 'Area' });
+Area.hasMany(Employee, { foreignKey: 'area_id', as: 'Employees' });
 
 // Nowe asocjacje dla Worksheet
 Company.hasMany(Worksheet, { foreignKey: 'company_id', as: 'Worksheets' });
@@ -34,4 +38,4 @@ Employee.hasOne(Card, {
   constraints: false // Dodajemy tę opcję
 });
 
-module.exports = { Company, Employee, Worksheet, Account, Card };
+module.exports = { Company, Employee, Worksheet, Account, Card, Area };
