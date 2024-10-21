@@ -33,7 +33,7 @@ Operator.init({
 });
 
 Operator.prototype.comparePassword = function(candidatePassword) {
-    return this.password === candidatePassword; // Pamiętaj, że to nie jest bezpieczne w produkcji!
+    return this.password === candidatePassword; 
 };
 
 module.exports = { Operator };

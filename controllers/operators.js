@@ -1,13 +1,14 @@
 const { Operator } = require('../models/operator');
+const { Area } = require('../models/area');
 
 exports.getOperators = async (req, res, next) => {
     if (!req.session.isLoggedIn) {
         return res.redirect('/login');
-    }else{
-    Operator.findAll()
-    .then(operators => {
-        console.log('operatory findAll');
-        console.log(req.session.isLoggedIn);
+    }
+    try {
+        const operators = await Operator.findAll({
+            include: [{ model: Area, as: 'Area', attributes: ['descript'] }]
+        });
         res.render('operators/operator-list', {
             operators: operators,
             pageTitle: 'Operatory',
@@ -15,44 +16,43 @@ exports.getOperators = async (req, res, next) => {
             isAuthenticated: req.session.isLoggedIn,
             isAdmin: req.session.isAdmin
         });
-    })
-    .catch(err => {
+    } catch (err) {
         console.log(err);
         next(err);
-    });
-}
+    }
 };
 
 exports.postAddOperator = async (req, res, next) => {
-    const login = req.body.login;
-    const password = req.body.password;
-    const area_id = req.body.area_id;
-    const is_admin = req.body.is_admin ? true : false;
-    Operator.create({
-        login: login,
-        password: password,
-        area_id: area_id,
-        is_admin: is_admin
-    })
-    .then(result => {
+    const { login, password, area_id, is_admin } = req.body;
+    try {
+        await Operator.create({
+            login: login,
+            password: password,
+            area_id: parseInt(area_id),
+            is_admin: is_admin === 'true'
+        });
         res.redirect('/operator-list');         
-    })   
-    .catch(err => {
+    } catch (err) {
         console.log(err);
-    });
+        next(err);
+    }
 };
 
 exports.getAddOperator = async (req, res, next) => {
     if (!req.session.isLoggedIn) {
         return res.redirect('/login');
-    }else{
-    res.render('operators/add-operator', {
-        pageTitle: 'Dodaj operatora',
-        path: '/add-operator',
-        isAuthenticated: req.session.isLoggedIn,
-        isAdmin: req.session.isAdmin
-    });
-}
+    }
+    try {
+        const areas = await Area.findAll();
+        res.render('operators/add-operator', {
+            pageTitle: 'Dodaj operatora',
+            path: '/add-operator',
+            areas: [{ area_id: 0, descript: 'Wszystkie obszary' }, ...areas],
+            isAuthenticated: req.session.isLoggedIn,
+            isAdmin: req.session.isAdmin
+        });
+    } catch (err) {
+        console.log(err);
+        next(err);
+    }
 };
-
-

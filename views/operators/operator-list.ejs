@@ -35,11 +35,11 @@
                             <td><%= operator.login %></td>
                             <td>********</td>
                             <td><%= operator.is_admin ? "Tak" : "Nie" %></td>
-                            <td><%= operator.area_id %></td>
+                            <td><%= operator.area_id === 0 ? 'Wszystkie obszary' : (operator.Area ? operator.Area.descript : 'Brak') %></td>
                             <td>
-                                <a href="/edit-operator/<%= operator.id %>" class="btn btn-warning btn-sm">Edytuj</a>
+                                <a href="/edit-operator/<%= operator.operator_id %>" class="btn btn-warning btn-sm">Edytuj</a>
                                 <form action="/delete-operator" method="POST" class="d-inline">
-                                    <input type="hidden" value="<%= operator.id %>" name="operatorId">
+                                    <input type="hidden" value="<%= operator.operator_id %>" name="operatorId">
                                     <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('Czy na pewno chcesz usunąć tego operatora?')">Usuń</button>
                                 </form>
                             </td>
