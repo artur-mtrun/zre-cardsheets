@@ -1,16 +1,24 @@
 const { Card } = require('../models/card');
 const { Employee } = require('../models/employee');
+const { Area } = require('../models/area');
 
 exports.getCards = (req, res, next) => {
     if (!req.session.isLoggedIn) {
         return res.redirect('/login');
     }
     Card.findAll({
-        include: [{
-            model: Employee,
-            as: 'Employee',
-            attributes: ['nick']
-        }]
+        include: [
+            {
+                model: Employee,
+                as: 'Employee',
+                attributes: ['nick']
+            },
+            {
+                model: Area,
+                as: 'Area',
+                attributes: ['descript']
+            }
+        ]
     })
     .then(cards => {
         console.log('karty', cards);
@@ -26,19 +34,27 @@ exports.getCards = (req, res, next) => {
         console.log(err);
         next(err);
     });
-    
 };
-exports.getAddCard = (req, res, next) => {
+
+exports.getAddCard = async (req, res, next) => {
     if (!req.session.isLoggedIn) {
         return res.redirect('/login');
     }
-    res.render('cards/add-card', {
-        pageTitle: 'Dodaj kartę',
-        path: '/add-card',
-        isAuthenticated: req.session.isLoggedIn,
-        isAdmin: req.session.isAdmin
-    });
+    try {
+        const areas = await Area.findAll();
+        res.render('cards/add-card', {
+            pageTitle: 'Dodaj kartę',
+            path: '/add-card',
+            areas: areas,
+            isAuthenticated: req.session.isLoggedIn,
+            isAdmin: req.session.isAdmin
+        });
+    } catch (err) {
+        console.log(err);
+        next(err);
+    }
 };
+
 exports.postAddCard = async (req, res, next) => {
     if (!req.session.isLoggedIn) {
         return res.redirect('/login');
@@ -63,10 +79,12 @@ exports.postAddCard = async (req, res, next) => {
         res.redirect('/card-list');
     } catch (error) {
         console.error('Błąd podczas dodawania karty:', error);
+        const areas = await Area.findAll();
         res.status(400).render('cards/add-card', {
             pageTitle: 'Dodaj kartę',
             path: '/add-card',
             errorMessage: error.message,
+            areas: areas,
             isAuthenticated: req.session.isLoggedIn,
             isAdmin: req.session.isAdmin
         });

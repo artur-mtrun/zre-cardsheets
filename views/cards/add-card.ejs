@@ -26,7 +26,12 @@
                             </div>
                             <div class="mb-3">
                                 <label for="area_id" class="form-label">Obszar</label>
-                                <input type="text" class="form-control" name="area_id" id="area_id" required>
+                                <select class="form-control" name="area_id" id="area_id" required>
+                                    <option value="">Wybierz obszar</option>
+                                    <% areas.forEach(area => { %>
+                                        <option value="<%= area.area_id %>"><%= area.descript %></option>
+                                    <% }); %>
+                                </select>
                             </div>
                             <div class="d-grid">
                                 <button class="btn btn-primary" type="submit">Dodaj kartę</button>

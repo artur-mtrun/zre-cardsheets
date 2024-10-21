@@ -38,4 +38,8 @@ Employee.hasOne(Card, {
   constraints: false // Dodajemy tę opcję
 });
 
+// Dodaj tę asocjację dla Card i Area
+Card.belongsTo(Area, { foreignKey: 'area_id', as: 'Area' });
+Area.hasMany(Card, { foreignKey: 'area_id', as: 'Cards' });
+
 module.exports = { Company, Employee, Worksheet, Account, Card, Area };

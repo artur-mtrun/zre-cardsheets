@@ -26,7 +26,7 @@
                         <tr>
                             <th scope="row"><%= index + 1 %></th>
                             <td><%= card.cardnumber %></td>
-                            <td><%= card.area_id %></td>
+                            <td><%= card.Area ? card.Area.descript : 'Brak' %></td>
                             <td><%= card.Employee ? card.Employee.nick : 'Nie przypisana' %></td>
                             <td>
                                 <% if (!card.Employee) { %>
