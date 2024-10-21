@@ -10,7 +10,6 @@ Employee.init({
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
-        initialAutoIncrement: 20000
     },
     nick: {
         type: DataTypes.STRING,

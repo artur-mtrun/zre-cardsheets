@@ -46,12 +46,23 @@ exports.getAddEmployee = async(req, res, next) => {
     try {
         const new_enrollnumber = await getLastEmployeeNumber();
         const companies = await Company.findAll();
+        let areas;
+        let userArea;
+
+        if (req.session.isAdmin) {
+            areas = await Area.findAll();
+        } else {
+            userArea = await Area.findByPk(req.session.area_id);
+        }
+
         console.log('Nowy numer pracownika:', new_enrollnumber);
         
         renderViewWithError(res, 'employees/add-employee', {
             req,
             new_enrollnumber,
             companies,
+            areas,
+            userArea,
             pageTitle: 'Dodaj Pracownika',
             path: '/add-employee',
             isAuthenticated: req.session.isLoggedIn,
@@ -71,7 +82,6 @@ exports.postAddEmployee = async (req, res, next) => {
     const errors = validationResult(req);
     
     if (handleValidationErrors(req, errors)) {
-        // Jeśli są błędy walidacji, zapisz sesję i przekieruj
         return req.session.save(err => {
             if (err) {
                 console.error('Błąd zapisu sesji:', err);
@@ -82,7 +92,7 @@ exports.postAddEmployee = async (req, res, next) => {
     
     console.log('Dodawanie pracownika: ', nick, enrollnumber, area_id, cardnumber, company_id, to_send);
     try {
-        await Employee.create({
+        const newEmployee = await Employee.create({
             nick,
             enrollnumber,
             area_id,
@@ -90,8 +100,21 @@ exports.postAddEmployee = async (req, res, next) => {
             company_id,
             to_send
         });
+        console.log('Pracownik dodany pomyślnie:', newEmployee.toJSON());
         res.redirect('/');
     } catch (err) {
+        console.error('Błąd podczas dodawania pracownika:');
+        console.error('Nazwa błędu:', err.name);
+        console.error('Wiadomość błędu:', err.message);
+        console.error('Stos błędu:', err.stack);
+        if (err.errors) {
+            console.error('Szczegóły błędów walidacji:');
+            err.errors.forEach(error => {
+                console.error('Pole:', error.path);
+                console.error('Typ:', error.type);
+                console.error('Wiadomość:', error.message);
+            });
+        }
         next(err);
     }
 };

@@ -59,10 +59,19 @@
                             </div>
                             <div class="mb-3">
                                 <label for="area_id" class="form-label">Obszar</label>
-                                <input type="text" class="form-control" name="area_id" id="area_id" required 
-                                    value="<%= session.area_id %>" <%= session.area_id !== 0 ? 'readonly' : '' %>>
+                                <% if (session.isAdmin) { %>
+                                    <select class="form-control" name="area_id" id="area_id" required>
+                                        <option value="">Wybierz obszar</option>
+                                        <% areas.forEach(area => { %>
+                                            <option value="<%= area.area_id %>"><%= area.descript %></option>
+                                        <% }); %>
+                                    </select>
+                                <% } else { %>
+                                    <input type="text" class="form-control" value="<%= userArea.descript %>" readonly>
+                                    <input type="hidden" name="area_id" value="<%= userArea.area_id %>">
+                                <% } %>
                                 <div class="invalid-feedback">
-                                    Proszę podać ID obszaru.
+                                    Proszę wybrać obszar.
                                 </div>
                             </div>
                             <div class="mb-3">
